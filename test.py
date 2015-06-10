@@ -18,10 +18,10 @@ class BaseTestCase(unittest.TestCase):
     def test_login(self):
         email = app.config['EMAIL']
         password = app.config['PASSWORD']
-        rv = self.client.post('/login', data=dict(
+        rv = self.client.post('/login', data=json.dumps(dict(
             email=email,
             password=password
-        ))
+        )), headers={'content-type': 'application/json'})
         data = json.loads(rv.data)
         assert data['message'] == 'OK'
 
@@ -33,7 +33,7 @@ class BaseTestCase(unittest.TestCase):
 
         rv = self.client.get('/folders')
         data = json.loads(rv.data)
-        assert data['items'] == ['hello']
+        assert data['items'] == [(1, 'hello')]
 
     def tearDown(self):
         os.remove('mydb.db')

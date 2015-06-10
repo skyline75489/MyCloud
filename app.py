@@ -60,7 +60,7 @@ def verify_auth_token(token):
 
 @app.route('/login', methods=['POST'])
 def login():
-    req = request.form
+    req = request.get_json()
     if req['email'] == app.config['EMAIL'] and req['password'] == app.config['PASSWORD']:
         # Login OK
         s = Serializer(app.config['SECRET_KEY'], expires_in=7 * 24 * 3600)  # Expires in 1 week
@@ -95,8 +95,8 @@ def folders():
 
     if request.method == 'GET':
         folders = Folder.select()
-        items = [x.name for x in folders]
-        return jsonify(items=items)
+        items = [(x.id, x.name) for x in folders]
+        return jsonify(message='OK', items=items)
 
 
 @app.route('/folders/<string:name>', methods=['GET'])

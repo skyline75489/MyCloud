@@ -10,46 +10,42 @@
     <script src="static/js/js.cookie-2.0.0.min.js"></script>
 
     <link rel="stylesheet" href="static/css/bootstrap.min.css">
+    <script src="static/js/Api.js"></script>
     <script type="text/javascript">
-      var Alert = ReactBootstrap.Alert;
-      var Button = ReactBootstrap.Button;
-      var Modal = ReactBootstrap.Modal;
-      var ModalTrigger = ReactBootstrap.ModalTrigger;
-      var Input = ReactBootstrap.Input;
-      var OverlayMixin = ReactBootstrap.OverlayMixin;
+      var {
+        Alert ,
+        Button,
+        Modal,
+        ModalTrigger,
+        Input,
+        OverlayMixin,
+        Navbar,
+        ListGroup,
+        ListGroupItem 
+      } = ReactBootstrap;
     </script>
   </head>
   <body>
-    <div id="content"></div>
+    <div id="content" class="container"></div>
       <script type="text/jsx">
-      
+
       var LoginForm = React.createClass({
         handleSubmit: function(e) {
           e.preventDefault();
-          var email = React.findDOMNode(this.refs.email).value.trim();
-          var password = React.findDOMNode(this.refs.password).value.trim();
+          var email = this.refs.email.getValue().trim();
+          var password = this.refs.password.getValue().trim();
           var payload = {
             email: email,
             password: password,
           };
-          $.ajax({
-            url: this.props.url,
-            dataType: 'json',
-            type: 'POST',
-            data: payload,
-            success: function(data) {
-              if (data.message === 'OK') {
-                this.props.doLogin(data);
-              }
-            }.bind(this),
-            error: function(xhr, status, err) {
-              console.error(this.props.url, status, err.toString());
-            }.bind(this)
-          });
+          var self = this;
+          Api.doLogin(payload, function(data){
+            self.props.doLogin(data);
+          })
         },
         render: function() {
           return (
-            <div className="login">
+            <div className="login col-md-4 col-md-offset-4">
               <h3>Login</h3>
               <form onSubmit={this.handleSubmit}>
                  <Input type="text" placeholder="Email" ref="email"/>
@@ -64,14 +60,17 @@
       var Panel = React.createClass({
         render: function() {
           return (
-            <FolderPanel />
+            <div className="row"> 
+              <FolderPanel />
+            </div>
           );
         }
       });
 
       var CreateFolderModal = React.createClass({
-        test: function() {
-          console.log(this.props);
+        doAddFolder: function() {
+          var name = this.refs.name.getValue().trim();
+          this.props.addFolder(name);
         },
         render: function() {
           return (
@@ -81,7 +80,7 @@
               </div>
               <div className='modal-footer'>
                 <Button onClick={this.props.onRequestHide}>Close</Button>
-                <Button bsStyle='primary' onClick={this.test}>Save changes</Button>
+                <Button bsStyle='primary' onClick={this.doAddFolder}>Add</Button>
               </div>
             </Modal>
           );
@@ -102,7 +101,7 @@
         },
         render() {
           return (
-            <Button onClick={this.handleToggle} bsStyle='primary'>Add</Button>
+            <Button onClick={this.handleToggle} bsStyle='primary'>New Folder</Button>
           );
         },
         // This is called by the `OverlayMixin` when this component
@@ -118,14 +117,44 @@
       });
 
       var FolderPanel = React.createClass({
-        addFolder: function() {
-          console.log('Add');
+        getInitialState: function() {
+          return {
+            folders: [],
+          };
+        },
+        updateFolderList: function() {
+          var self = this;
+          Api.getFolders(function(data) {
+            self.setState({
+              folders: data.items
+            });
+          });
+        },
+        componentDidMount: function() {
+          this.updateFolderList();
+        },
+        addFolder: function(name) {
+          var payload = {name: name};
+          var self = this;
+          Api.addFolder(payload, function() {
+            self.updateFolderList();
+            self.refs.trigger.handleToggle();
+          });
         },
         render: function() {
+          var folderList = [];
+          var data = this.state.folders;
+          for (var k in data) {
+            var val = data[k];
+            folderList.push(<ListGroupItem href='#link1'>{val}</ListGroupItem>);
+          }
           return (
-            <div>
-              <p>Folders</p>
-              <CreateFolderModalTrigger addFolder={this.addFolder}/>
+            <div className="col-md-4">
+              <CreateFolderModalTrigger ref="trigger" addFolder={this.addFolder}/>
+              <p></p>
+              <ListGroup>
+               {folderList}
+              </ListGroup>
             </div>
           );
         }
@@ -143,22 +172,14 @@
             return;
           }
           var token = Cookies.get('token');
-          $.ajax({
-            url: "http://localhost:5000/login/testAuth",
-            dataType: 'json',
-            type: 'GET',
-            success: function(data) {
-              if (data.message === 'OK') {
-                  this.setState({
-                  login: true,
-                });
-              }
-            }.bind(this),
-            error: function(xhr, status, err) {
-              console.error(this.props.url, status, err.toString());
-            }.bind(this)
+          var self = this;
+          Api.testAuth(function(data) {
+            if (data.message === 'OK') {
+              self.setState({
+                login: true,
+              });
+            }
           });
-
         },
         doLogin: function(data) {
           this.setState({
@@ -168,9 +189,18 @@
         },
         render: function() {
           if (!this.state.login) {
-            return <LoginForm doLogin={this.doLogin} url="http://localhost:5000/login"/>;
+            return (
+              <div className="row">
+                <LoginForm doLogin={this.doLogin}/>
+              </div>
+            );
           }
-          return <Panel />
+          return (
+            <div>
+              <Navbar brand='MyCloud' />
+              <Panel />
+            </div>
+          );
         }
       });
       React.render(

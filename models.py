@@ -9,7 +9,8 @@ class BaseModel(Model):
 
 
 class Folder(BaseModel):
-    name = CharField(max_length=64)
+    id = IntegerField(primary_key=True)
+    name = CharField(max_length=64, unique=True)
 
 
 class File(BaseModel):
@@ -20,3 +21,6 @@ class File(BaseModel):
 def create_all_tables():
     db.connect()
     db.create_tables([Folder, File])
+
+if __name__ == '__main__':
+    create_all_tables()
