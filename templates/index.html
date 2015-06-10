@@ -5,11 +5,24 @@
     <script src="static/js/react.js"></script>
     <script src="static/js/JSXTransformer.js"></script>    
     <script src="static/js/jquery-2.1.3.min.js"></script>
+    <script src="static/js/bootstrap.min.js"></script>
+    <script src="static/js/react-bootstrap.min.js"></script>
     <script src="static/js/js.cookie-2.0.0.min.js"></script>
+
+    <link rel="stylesheet" href="static/css/bootstrap.min.css">
+    <script type="text/javascript">
+      var Alert = ReactBootstrap.Alert;
+      var Button = ReactBootstrap.Button;
+      var Modal = ReactBootstrap.Modal;
+      var ModalTrigger = ReactBootstrap.ModalTrigger;
+      var Input = ReactBootstrap.Input;
+      var OverlayMixin = ReactBootstrap.OverlayMixin;
+    </script>
   </head>
   <body>
     <div id="content"></div>
       <script type="text/jsx">
+      
       var LoginForm = React.createClass({
         handleSubmit: function(e) {
           e.preventDefault();
@@ -25,7 +38,6 @@
             type: 'POST',
             data: payload,
             success: function(data) {
-              console.log(data);
               if (data.message === 'OK') {
                 this.props.doLogin(data);
               }
@@ -38,12 +50,12 @@
         render: function() {
           return (
             <div className="login">
-                <p>Login</p>
-                <form onSubmit={this.handleSubmit}>
-                   <input type="text" placeholder="Email" ref="email"/>
-                   <input type="password" placeholder="Password" ref="password"/>
-                   <input type="submit" value="Post" />
-                </form>
+              <h3>Login</h3>
+              <form onSubmit={this.handleSubmit}>
+                 <Input type="text" placeholder="Email" ref="email"/>
+                 <Input type="password" placeholder="Password" ref="password"/>
+                 <Input type="submit" value="Login" />
+              </form>
             </div>
           );
         }
@@ -52,7 +64,69 @@
       var Panel = React.createClass({
         render: function() {
           return (
-            <div>Panel</div>
+            <FolderPanel />
+          );
+        }
+      });
+
+      var CreateFolderModal = React.createClass({
+        test: function() {
+          console.log(this.props);
+        },
+        render: function() {
+          return (
+            <Modal {...this.props} title='Add folder'>
+              <div className='modal-body'>
+              <Input type="text" label="Folder Name" ref="name" />
+              </div>
+              <div className='modal-footer'>
+                <Button onClick={this.props.onRequestHide}>Close</Button>
+                <Button bsStyle='primary' onClick={this.test}>Save changes</Button>
+              </div>
+            </Modal>
+          );
+        }
+      });
+
+      var CreateFolderModalTrigger = React.createClass({
+        mixins: [OverlayMixin],
+        getInitialState() {
+          return {
+            isModalOpen: false
+          };
+        },
+        handleToggle() {
+          this.setState({
+            isModalOpen: !this.state.isModalOpen
+          });
+        },
+        render() {
+          return (
+            <Button onClick={this.handleToggle} bsStyle='primary'>Add</Button>
+          );
+        },
+        // This is called by the `OverlayMixin` when this component
+        // is mounted or updated and the return value is appended to the body.
+        renderOverlay() {
+          if (!this.state.isModalOpen) {
+            return <span/>;
+          }
+          return (
+            <CreateFolderModal onRequestHide={this.handleToggle} {...this.props}/>
+          );
+        }
+      });
+
+      var FolderPanel = React.createClass({
+        addFolder: function() {
+          console.log('Add');
+        },
+        render: function() {
+          return (
+            <div>
+              <p>Folders</p>
+              <CreateFolderModalTrigger addFolder={this.addFolder}/>
+            </div>
           );
         }
       });
@@ -74,7 +148,6 @@
             dataType: 'json',
             type: 'GET',
             success: function(data) {
-              console.log(data);
               if (data.message === 'OK') {
                   this.setState({
                   login: true,

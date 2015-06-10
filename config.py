@@ -1,2 +1,3 @@
-
 SECRET_KEY = '1231231'
+EMAIL = 'test'
+PASSWORD = 'test'
