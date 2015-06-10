@@ -6,6 +6,8 @@ from itsdangerous import (TimedJSONWebSignatureSerializer
                           as Serializer, BadSignature, SignatureExpired)
 
 
+from models import Folder, File
+
 import random
 
 _random = random.SystemRandom()
@@ -81,11 +83,24 @@ def test_auth():
 @app.route('/folders', methods=['GET', 'POST'])
 def folders():
     if request.method == 'POST':
-        pass
-    
+        req = request.get_json()
+        f = Folder.create(name=req['name'])
+        try:
+            f.save()
+            return jsonify(message='OK')
+
+        except Exception as e:
+            print e
+            return jsonify(message='error')
+
+    if request.method == 'GET':
+        folders = Folder.select()
+        items = [x.name for x in folders]
+        return jsonify(items=items)
+
 
 @app.route('/folders/<string:name>', methods=['GET'])
-def get_files_of_folder(id):
+def folder(name):
     pass
 
 

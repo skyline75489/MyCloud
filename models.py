@@ -12,7 +12,11 @@ class Folder(BaseModel):
     name = CharField(max_length=64)
 
 
-def create_all_tables():
-    Folder.create_table()
+class File(BaseModel):
+    folder = ForeignKeyField(Folder, related_name='files')
+    filename = CharField()
 
-    
+
+def create_all_tables():
+    db.connect()
+    db.create_tables([Folder, File])

@@ -3,11 +3,13 @@ import unittest
 import tempfile
 import json
 
+
 from app import app
 from models import Folder, create_all_tables
 
 
 class BaseTestCase(unittest.TestCase):
+
     def setUp(self):
         app.testing = True
         self.client = app.test_client()
@@ -17,11 +19,21 @@ class BaseTestCase(unittest.TestCase):
         email = app.config['EMAIL']
         password = app.config['PASSWORD']
         rv = self.client.post('/login', data=dict(
-                    email=email,
-                    password=password
-                ))
+            email=email,
+            password=password
+        ))
         data = json.loads(rv.data)
         assert data['message'] == 'OK'
+
+    def test_add_folder(self):
+        rv = self.client.post('/folders', data=json.dumps(dict(name='hello')),
+                              headers={'content-type': 'application/json'})
+        data = json.loads(rv.data)
+        assert data['message'] == 'OK'
+
+        rv = self.client.get('/folders')
+        data = json.loads(rv.data)
+        assert data['items'] == ['hello']
 
     def tearDown(self):
         os.remove('mydb.db')
