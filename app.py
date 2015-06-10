@@ -7,6 +7,7 @@ from itsdangerous import (TimedJSONWebSignatureSerializer
 
 
 from models import Folder, File
+import peewee
 
 import random
 
@@ -89,13 +90,13 @@ def folders():
             f.save()
             return jsonify(message='OK')
 
-        except Exception as e:
+        except peewee.DatabaseError as e:
             print e
             return jsonify(message='error')
 
     if request.method == 'GET':
         folders = Folder.select()
-        items = [(x.id, x.name) for x in folders]
+        items = [x.name for x in folders]
         return jsonify(message='OK', items=items)
 
 

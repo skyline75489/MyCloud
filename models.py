@@ -9,7 +9,6 @@ class BaseModel(Model):
 
 
 class Folder(BaseModel):
-    id = IntegerField(primary_key=True)
     name = CharField(max_length=64, unique=True)
 
 

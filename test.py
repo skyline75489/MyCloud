@@ -29,11 +29,12 @@ class BaseTestCase(unittest.TestCase):
         rv = self.client.post('/folders', data=json.dumps(dict(name='hello')),
                               headers={'content-type': 'application/json'})
         data = json.loads(rv.data)
+        print(data)
         assert data['message'] == 'OK'
 
         rv = self.client.get('/folders')
         data = json.loads(rv.data)
-        assert data['items'] == [(1, 'hello')]
+        assert data['items'] == ['hello']
 
     def tearDown(self):
         os.remove('mydb.db')
