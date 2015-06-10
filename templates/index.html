@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type"content="text/html; charset=utf-8"/>
+    <script src="static/js/react.js"></script>
+    <script src="static/js/JSXTransformer.js"></script>    
+    <script src="static/js/jquery-2.1.3.min.js"></script>
+    <script src="static/js/js.cookie-2.0.0.min.js"></script>
+  </head>
+  <body>
+    <div id="content"></div>
+      <script type="text/jsx">
+      var LoginForm = React.createClass({
+        handleSubmit: function(e) {
+          e.preventDefault();
+          var email = React.findDOMNode(this.refs.email).value.trim();
+          var password = React.findDOMNode(this.refs.password).value.trim();
+          var payload = {
+            email: email,
+            password: password,
+          };
+          $.ajax({
+            url: this.props.url,
+            dataType: 'json',
+            type: 'POST',
+            data: payload,
+            success: function(data) {
+              console.log(data);
+              if (data.message === 'OK') {
+                this.props.doLogin(data);
+              }
+            }.bind(this),
+            error: function(xhr, status, err) {
+              console.error(this.props.url, status, err.toString());
+            }.bind(this)
+          });
+        },
+        render: function() {
+          return (
+            <div className="login">
+                <p>Login</p>
+                <form onSubmit={this.handleSubmit}>
+                   <input type="text" placeholder="Email" ref="email"/>
+                   <input type="password" placeholder="Password" ref="password"/>
+                   <input type="submit" value="Post" />
+                </form>
+            </div>
+          );
+        }
+      });
+
+      var Panel = React.createClass({
+        render: function() {
+          return (
+            <div>Panel</div>
+          );
+        }
+      });
+
+      var App = React.createClass({
+        getInitialState: function() {
+          return {
+            login: false,
+            data: []
+          };
+        },
+        componentDidMount: function() {
+          if (!Cookies.get('token')) {
+            return;
+          }
+          var token = Cookies.get('token');
+          $.ajax({
+            url: "http://localhost:5000/login/testAuth",
+            dataType: 'json',
+            type: 'GET',
+            success: function(data) {
+              console.log(data);
+              if (data.message === 'OK') {
+                  this.setState({
+                  login: true,
+                });
+              }
+            }.bind(this),
+            error: function(xhr, status, err) {
+              console.error(this.props.url, status, err.toString());
+            }.bind(this)
+          });
+
+        },
+        doLogin: function(data) {
+          this.setState({
+            login: true,
+          });
+          Cookies.set('token', data.token, { expires: 7 });
+        },
+        render: function() {
+          if (!this.state.login) {
+            return <LoginForm doLogin={this.doLogin} url="http://localhost:5000/login"/>;
+          }
+          return <Panel />
+        }
+      });
+      React.render(
+        React.createElement(App, null),
+        document.getElementById('content')
+      );
+      </script>
+  </body>
+</html>
