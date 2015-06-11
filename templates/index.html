@@ -22,13 +22,24 @@
         OverlayMixin,
         Navbar,
         ListGroup,
-        ListGroupItem 
+        ListGroupItem,
+        Glyphicon,
       } = ReactBootstrap;
     </script>
   </head>
   <body>
     <div id="content" class="container"></div>
       <script type="text/jsx">
+      function makeKey()
+      {
+        var text = "";
+        var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+        for( var i=0; i < 5; i++ )
+           text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+        return text;
+      }
 
       var LoginForm = React.createClass({
         handleSubmit: function(e) {
@@ -61,22 +72,40 @@
       var Panel = React.createClass({
         render: function() {
           return (
-            <div className="row"> 
-              <FolderPanel />
-            </div>
+            <FolderPanel />
           );
         }
       });
 
       var CreateFolderModal = React.createClass({
+        getInitialState: function() {
+          return {
+            error: false
+          };
+        },
         doAddFolder: function() {
           var name = this.refs.name.getValue().trim();
-          this.props.addFolder(name);
+          var self = this;
+          this.props.addFolder(name, function(ret) {
+            self.setState({
+              error: !ret
+            });
+          });            
         },
         render: function() {
+          if (this.state.error) {
+            var alert = (
+              <Alert bsStyle='danger'>
+                <strong>Error: </strong>Please check your folder name again.
+              </Alert>
+            );
+          } else {
+            var alert = <span></span>;
+          }
           return (
             <Modal {...this.props} title='Add folder'>
               <div className='modal-body'>
+              {alert}
               <Input type="text" label="Folder Name" ref="name" />
               </div>
               <div className='modal-footer'>
@@ -126,35 +155,183 @@
         updateFolderList: function() {
           var self = this;
           Api.getFolders(function(data) {
-            self.setState({
-              folders: data.items
-            });
+            if (data.items.length > 0) {
+              self.setState({
+                folders: data.items
+              });
+              self.refs.filePanel.updateFileList(data.items[0]);
+            }
           });
         },
         componentDidMount: function() {
           this.updateFolderList();
         },
-        addFolder: function(name) {
+        addFolder: function(name, callback) {
           var payload = {name: name};
           var self = this;
-          Api.addFolder(payload, function() {
+          Api.addFolder(payload, function(ret) {
+            if (ret === false) {
+              return callback && callback(false);
+            }
             self.updateFolderList();
             self.refs.trigger.handleToggle();
+            return callback && callback(true);
           });
+        },
+        onSelectFolder: function(folderName) {
+          console.log(folderName);
         },
         render: function() {
           var folderList = [];
           var data = this.state.folders;
           for (var k in data) {
             var val = data[k];
-            folderList.push(<ListGroupItem href='#link1'>{val}</ListGroupItem>);
+            folderList.push(
+              <ListGroupItem key={makeKey()} onClick={()=>{
+                this.onSelectFolder(val);
+              }}>
+                <Glyphicon glyph='folder-close' /><span>{val}</span>
+              </ListGroupItem>
+            );
           }
           return (
+            <div className="row">
             <div className="col-md-4">
               <CreateFolderModalTrigger ref="trigger" addFolder={this.addFolder}/>
               <p></p>
               <ListGroup>
                {folderList}
+              </ListGroup>
+            </div>
+
+            <FilePanel ref="filePanel"/>
+            </div>
+          );
+        }
+      });
+
+      var UploadFileModal = React.createClass({
+        getInitialState: function() {
+          return {
+            error: false
+          };
+        },
+        doUploadFile: function() {
+          var form =  React.findDOMNode(this.refs.form);
+          var formData = new FormData(form);
+           $.ajax({
+            type: "POST",
+            url: "http://localhost:5000/folders/Music",
+            cache: false,
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function () {
+              alert("Data Uploaded");
+            }
+          });
+        },
+        render: function() {
+          if (this.state.error) {
+            var alert = (
+              <Alert bsStyle='danger'>
+                <strong>Error: </strong>Please check your file name again.
+              </Alert>
+            );
+          } else {
+            var alert = <span></span>;
+          }
+          return (
+            <Modal {...this.props} title='Upload file'>
+              <div className='modal-body'>
+              {alert}
+                <form ref="form" encType="multipart/form-data">
+                  <Input name="file" type='file' label='File' ref="file"/>
+                  <Input name="folder" type='hidden' value="Music" />
+                </form>
+              </div>
+              <div className='modal-footer'>
+                <Button onClick={this.props.onRequestHide}>Close</Button>
+                <Button bsStyle='primary' onClick={this.doUploadFile}>Upload</Button>
+              </div>
+            </Modal>
+          );
+        }
+      });
+
+      var UploadFileModalTrigger = React.createClass({
+        mixins: [OverlayMixin],
+        getInitialState() {
+          return {
+            isModalOpen: false
+          };
+        },
+        handleToggle() {
+          this.setState({
+            isModalOpen: !this.state.isModalOpen
+          });
+        },
+        render() {
+          return (
+            <Button onClick={this.handleToggle} bsStyle='primary'>Upload File</Button>
+          );
+        },
+        // This is called by the `OverlayMixin` when this component
+        // is mounted or updated and the return value is appended to the body.
+        renderOverlay() {
+          if (!this.state.isModalOpen) {
+            return <span/>;
+          }
+          return (
+            <UploadFileModal onRequestHide={this.handleToggle} {...this.props}/>
+          );
+        }
+      });
+
+      var FilePanel = React.createClass({
+        getInitialState: function() {
+          return {
+            files: [],
+            folderName: '',
+            folderSelected: false,
+          };
+        },
+        updateFileList: function(folderName) {
+          var self = this;
+          Api.getFilesInFolder(folderName, function(data) {
+            self.setState({
+              files: data.items,
+              folderName: folderName, 
+              folderSelected: true,
+            })
+          });
+        },
+        addFile: function(name) {
+          var payload = {name: name};
+          var self = this;
+        },
+        render: function() {
+          var fileList = [];
+          var data = this.state.files;
+          for (var k in data) {
+            var val = data[k];
+            fileList.push(
+              <ListGroupItem key={makeKey()} href='#link1'>
+                <Glyphicon glyph='file' /><span>{val}</span>
+              </ListGroupItem>
+            );
+          }
+          if (this.state.folderSelected) {
+            var uploadButton = <UploadFileModalTrigger ref="trigger" addFile={this.addFile}/>
+          } else {
+            var uploadButton = <span />;
+          }
+          return (
+            <div className="col-md-8">
+              {uploadButton}
+              <p></p>
+              <ListGroup>
+               {fileList}
               </ListGroup>
             </div>
           );

@@ -10,10 +10,13 @@ var Api = {
       success: function(data) {
         console.log(url, status, data);
         if (data.message === 'OK') {
-          callback && callback(data)
+          callback && callback(data);
+        } else {
+          callback && callback(false);
         }
       },
       error: function(xhr, status, err) {
+        callback && callback(false);
         console.error(url, status, err.toString());
       }
     });
@@ -26,10 +29,13 @@ var Api = {
       success: function(data) {
         console.log(url, status, data);
         if (data.message === 'OK') {
-          callback && callback(data)
+          callback && callback(data);
+        } else {
+          callback && callback(false);
         }
       },
       error: function(xhr, status, err) {
+        callback && callback(false);
         console.error(url, status, err.toString());
       }
     });
@@ -45,5 +51,8 @@ var Api = {
   },
   addFolder: function(payload, callback) {
     this.doPostRequest(this.baseURL + '/folders', payload, callback);
+  },
+  getFilesInFolder: function(folderName, callback) {
+    this.doGetRequest(this.baseURL + '/folders/' + folderName , callback);
   }
 }

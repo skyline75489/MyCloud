@@ -1,10 +1,13 @@
+import os
 from functools import wraps
 
-from flask import Flask, request, render_template, jsonify, g
+from flask import Flask, request, render_template, jsonify, redirect, url_for
 
 from itsdangerous import (TimedJSONWebSignatureSerializer
                           as Serializer, BadSignature, SignatureExpired)
 
+
+from werkzeug import secure_filename
 
 from models import Folder, File
 import peewee
@@ -64,7 +67,8 @@ def login():
     req = request.get_json()
     if req['email'] == app.config['EMAIL'] and req['password'] == app.config['PASSWORD']:
         # Login OK
-        s = Serializer(app.config['SECRET_KEY'], expires_in=7 * 24 * 3600)  # Expires in 1 week
+        # Expires in 1 week
+        s = Serializer(app.config['SECRET_KEY'], expires_in=7 * 24 * 3600)
 
         return jsonify(message='OK',
                        token=s.dumps({'random': get_random_int(),
@@ -85,12 +89,11 @@ def test_auth():
 def folders():
     if request.method == 'POST':
         req = request.get_json()
-        f = Folder.create(name=req['name'])
         try:
+            f = Folder.create(name=req['name'])
             f.save()
             return jsonify(message='OK')
-
-        except peewee.DatabaseError as e:
+        except peewee.IntegrityError as e:
             print e
             return jsonify(message='error')
 
@@ -100,9 +103,25 @@ def folders():
         return jsonify(message='OK', items=items)
 
 
-@app.route('/folders/<string:name>', methods=['GET'])
-def folder(name):
-    pass
+@app.route('/folders/<folder_name>', methods=['GET', 'POST'])
+def folder(folder_name):
+    try:
+        f = Folder.get(name=folder_name)
+    except peewee.DoesNotExist:
+        return jsonify(message='error')
+
+    if request.method == 'POST':
+        file = request.files['file']
+        if file:
+            filename = secure_filename(folder_name + '_' + file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            f2 = File.create(folder=folder_name, filename=file.filename)
+            f2.save()
+            return jsonify(message='OK')
+    if request.method == 'GET':
+        files = File.select().where(File.folder == folder_name)
+        items = [x.filename for x in files]
+        return jsonify(message='OK', items=items)
 
 
 @app.route('/', methods=['GET'])

@@ -13,7 +13,7 @@ class Folder(BaseModel):
 
 
 class File(BaseModel):
-    folder = ForeignKeyField(Folder, related_name='files')
+    folder = ForeignKeyField(Folder, related_name='files', to_field='name')
     filename = CharField()
 
 
