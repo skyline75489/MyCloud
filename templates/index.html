@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta http-equiv="Content-Type"content="text/html; charset=utf-8"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>MyCloud</title>
-    <script src="static/js/react.js"></script>
-    <script src="static/js/JSXTransformer.js"></script>    
-    <script src="static/js/jquery-2.1.3.min.js"></script>
-    <script src="static/js/bootstrap.min.js"></script>
-    <script src="static/js/react-bootstrap.min.js"></script>
-    <script src="static/js/js.cookie-2.0.0.min.js"></script>
+    <script src="{{ url_for('static', filename='js/react.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/JSXTransformer.js') }}"></script>    
+    <script src="{{ url_for('static', filename='js/jquery-2.1.3.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/react-bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/js.cookie-2.0.0.min.js') }}"></script>
 
-    <link rel="stylesheet" href="static/css/bootstrap.min.css">
-    <script src="static/js/Api.js"></script>
+    <script src="{{ url_for('static', filename='js/Api.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
     <script type="text/javascript">
       var {
         Alert ,
