@@ -114,6 +114,8 @@ def folder(folder_name):
         file = request.files['file']
         if file:
             filename = secure_filename(folder_name + '_' + file.filename)
+            if os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], filename)):
+                return jsonify(message='error')
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             f2 = File.create(folder=folder_name, filename=file.filename)
             f2.save()

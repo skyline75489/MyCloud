@@ -179,17 +179,22 @@
           });
         },
         onSelectFolder: function(folderName) {
-          console.log(folderName);
+          this.refs.filePanel.updateFileList(folderName);
         },
         render: function() {
           var folderList = [];
           var data = this.state.folders;
           for (var k in data) {
             var val = data[k];
+            var self = this;
             folderList.push(
-              <ListGroupItem key={makeKey()} onClick={()=>{
-                this.onSelectFolder(val);
-              }}>
+              <ListGroupItem key={makeKey()} onClick={(function() {
+                  var name = val;
+                  return function doSelect() {
+                    console.log(name);
+                    self.onSelectFolder(name);
+                  };
+                })()}>
                 <Glyphicon glyph='folder-close' /><span>{val}</span>
               </ListGroupItem>
             );
@@ -219,16 +224,11 @@
         doUploadFile: function() {
           var form =  React.findDOMNode(this.refs.form);
           var formData = new FormData(form);
-           $.ajax({
-            type: "POST",
-            url: "http://localhost:5000/folders/Music",
-            cache: false,
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function () {
-              alert("Data Uploaded");
-            }
+          var self = this;
+          this.props.addFile(formData, function(ret) {
+            self.setState({
+              error: !ret
+            })
           });
         },
         render: function() {
@@ -306,9 +306,16 @@
             })
           });
         },
-        addFile: function(name) {
-          var payload = {name: name};
+        addFile: function(formData, callback) {
           var self = this;
+          Api.uploadFile(this.state.folderName, formData, function(ret) {
+            if (ret === false) {
+              return callback && callback(false);
+            }
+            self.refs.trigger.handleToggle();
+            self.updateFileList(self.state.folderName);
+            return callback && callback(true);
+          });
         },
         render: function() {
           var fileList = [];

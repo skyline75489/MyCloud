@@ -54,5 +54,26 @@ var Api = {
   },
   getFilesInFolder: function(folderName, callback) {
     this.doGetRequest(this.baseURL + '/folders/' + folderName , callback);
+  },
+  uploadFile: function(folderName, formData, callback) {
+    $.ajax({
+      type: "POST",
+      url: "http://localhost:5000/folders/" + folderName,
+      cache: false,
+      data: formData,
+      processData: false,
+      contentType: false,
+      success: function (data) {
+        if (data.message === 'OK') {
+          callback && callback(data);
+        } else {
+          callback && callback(false);
+        }
+      },
+      error: function(xhr, status, err) {
+        callback && callback(false);
+        console.error(url, status, err.toString());
+      }
+    });
   }
 }
