@@ -12,13 +12,7 @@ from werkzeug import secure_filename
 from models import Folder, File
 import peewee
 
-import random
-
-_random = random.SystemRandom()
-
-
-def get_random_int():
-    return _random.randint(10000000, 99999999)
+from utils import generate_url, generate_password
 
 
 app = Flask(__name__)
@@ -28,11 +22,14 @@ app.config.from_object('config')
 def test_authorization():
     cookies = request.cookies
     headers = request.headers
+    args = request.args
     token = None
     if 'token' in cookies:
         token = cookies['token']
     elif 'Authorization' in headers:
         token = headers['Authorization']
+    elif 'token' in args:
+        token = args['token']
     else:
         return False
 
@@ -68,8 +65,7 @@ def login():
         s = Serializer(app.config['SECRET_KEY'], expires_in=7 * 24 * 3600)
 
         return jsonify(message='OK',
-                       token=s.dumps({'random': get_random_int(),
-                                      'key': app.config['SECRET_KEY']}))
+                       token=s.dumps({'key': app.config['SECRET_KEY']}))
     else:
         return jsonify(message='Failed')
 
@@ -118,13 +114,22 @@ def folder(folder_name):
                 return jsonify(message='error')
             file.save(
                 os.path.join(app.config['UPLOAD_FOLDER'], actual_filename))
-            f2 = File.create(folder=folder_name, filename=file.filename)
+            f2 = File.create(folder=folder_name, filename=file.filename, public_share_url=generate_url(),
+                             private_share_url=generate_url(), private_share_password=generate_password(),
+                             open_public_share=False, open_private_share=False)
             f2.save()
             return jsonify(message='OK')
 
     if request.method == 'GET':
         files = File.select().where(File.folder == folder_name)
-        items = [x.filename for x in files]
+        items = [{'filename': x.filename,
+                  'public': x.public_share_url,
+                  'private': x.private_share_url,
+                  'password': x.private_share_password,
+                  'openPublic': x.open_public_share,
+                  'openPrivate': x.open_private_share
+                  } for x in files]
+                 
         return jsonify(message='OK', items=items)
 
     if request.method == 'DELETE':
@@ -160,6 +165,7 @@ def files(folder_name, filename):
             return jsonify(message='error')
 
 
+@app.route('/')
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')

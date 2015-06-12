@@ -319,6 +319,82 @@ var UploadFileModalTrigger = React.createClass({
   }
 });
 
+var ShareFileModal = React.createClass({
+  getInitialState: function() {
+    return {
+      error: false
+    };
+  },
+  saveShareOption: function() {
+
+  },
+  render: function() {
+    if (this.state.error) {
+      var alert = (
+        <Alert bsStyle='danger'>
+          <strong>Error: </strong>Please check your file name again.
+        </Alert>
+      );
+    } else {
+      var alert = <span></span>;
+    }
+
+    var publicURL = 'Public: ' + Api.baseURL + '/s/' + this.props.public;
+    var privateURL = 'Private: ' + Api.baseURL + '/s/' + this.props.private + '    Password: ' + this.props.password;
+    return (
+      <Modal {...this.props} title='Share'>
+        <div className='modal-body'>
+        {alert}
+          <form ref="form">
+            <Input name="shareType" type='radio' label={publicURL} defaultChecked={this.props.openPublic}/>
+            <Input name="shareType" type='radio' label={privateURL} defaultChecked={this.props.openPrivate}/>
+            <Input name="shareType" type='radio' label='Do not share' defaultChecked={!(this.props.openPrivate || this.props.openPublic)}/>
+          </form>
+        </div>
+        <div className='modal-footer'>
+          <Button onClick={this.props.onRequestHide}>Close</Button>
+          <Button bsStyle='primary' onClick={this.saveShareOption}>Save</Button>
+        </div>
+      </Modal>
+    );
+  }
+});
+
+var ShareFileModalTrigger = React.createClass({
+  mixins: [OverlayMixin],
+  getInitialState() {
+    return {
+      isModalOpen: false
+    };
+  },
+  handleToggle() {
+    this.setState({
+      isModalOpen: !this.state.isModalOpen
+    });
+  },
+  render() {
+    var operationIconStyle = {
+      float: 'right',
+      marginRight: '10px',
+      cursor: 'pointer',
+    };
+
+    return (
+      <Glyphicon style={operationIconStyle} onClick={this.handleToggle} glyph='share' />
+    );
+  },
+  // This is called by the `OverlayMixin` when this component
+  // is mounted or updated and the return value is appended to the body.
+  renderOverlay() {
+    if (!this.state.isModalOpen) {
+      return <span/>;
+    }
+    return (
+      <ShareFileModal onRequestHide={this.handleToggle} {...this.props}/>
+    );
+  }
+});
+
 var FilePanel = React.createClass({
   getInitialState: function() {
     return {
@@ -381,7 +457,7 @@ var FilePanel = React.createClass({
     };
     var operationIconStyle = {
       float: 'right',
-      marginRight: '5px',
+      marginRight: '10px',
       cursor: 'pointer',
     };
 
@@ -391,20 +467,27 @@ var FilePanel = React.createClass({
       fileList.push(
         <ListGroupItem key={makeKey()}>
 
-          <Glyphicon style={fileIconStyle} glyph='file' /><span>{val}</span>
+          <Glyphicon style={fileIconStyle} glyph='file' /><span>{val.filename}</span>
           <a onClick={(function() {
-              var name = val;
+              var name = val.filename;
               return function doSelect() {
                 self.removeFile(name);
               };
             })()}>
             <Glyphicon style={operationIconStyle} glyph='remove' />
           </a>
-          <a href={Api.getDownloadFileURL(self.state.folderName, val)}>
+          <a href={Api.getDownloadFileURL(self.state.folderName, val.filename)}>
             <Glyphicon style={operationIconStyle} glyph='download-alt' />
           </a>
-
-          <Glyphicon style={operationIconStyle} glyph='share' />
+          <ShareFileModalTrigger 
+            folderName={self.state.folderName}
+            fileName={val.filename}
+            public={val.public}
+            private={val.private}
+            password={val.password}
+            openPublic={val.openPublic}
+            openPrivate={val.openPrivate}
+          />
 
         </ListGroupItem>
       );
