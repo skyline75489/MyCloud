@@ -172,7 +172,7 @@ var FolderPanel = React.createClass({
           showCancelButton: true,
           confirmButtonColor: "#DD6B55",
           confirmButtonText: "Yes, delete it!",
-          cancelButtonText: "No, cancel plx!",
+          cancelButtonText: "Cancel",
           closeOnConfirm: false,
           closeOnCancel: false
         },
@@ -202,14 +202,14 @@ var FolderPanel = React.createClass({
     var operationIconStyle = {
       float: 'right',
       marginRight: '5px',
+      cursor: 'pointer',
     };
-
     for (var k in data) {
       var val = data[k];
       var self = this;
       folderList.push(
         <ListGroupItem role="menu" key={makeKey()} >
-          <a role="menuitem" onClick={(function() {
+          <a onClick={(function() {
               var name = val;
               return function doSelect() {
                 self.onSelectFolder(name);
@@ -357,7 +357,7 @@ var FilePanel = React.createClass({
       showCancelButton: true,
       confirmButtonColor: "#DD6B55",
       confirmButtonText: "Yes, delete it!",
-      cancelButtonText: "No, cancel plx!",
+      cancelButtonText: "Cancel",
       closeOnConfirm: false,
       closeOnCancel: false
     },
@@ -377,11 +377,12 @@ var FilePanel = React.createClass({
     var data = this.state.files;
 
     var fileIconStyle = {
-      marginRight: '5px'
+      marginRight: '5px',
     };
     var operationIconStyle = {
       float: 'right',
       marginRight: '5px',
+      cursor: 'pointer',
     };
 
     for (var k in data) {
