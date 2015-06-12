@@ -36,16 +36,13 @@ def test_authorization():
     else:
         return False
 
-    if verify_auth_token(token) is not None:
-        return True
-    else:
-        return False
+    return verify_auth_token(token)
 
 
 def authorization_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        if test_authorization():
+        if not test_authorization():
             return jsonify(message='Not Authorized')
         return f(*args, **kwargs)
     return wrapper
@@ -86,6 +83,7 @@ def test_auth():
 
 
 @app.route('/folders', methods=['GET', 'POST'])
+@authorization_required
 def folders():
     if request.method == 'POST':
         req = request.get_json()
@@ -104,6 +102,7 @@ def folders():
 
 
 @app.route('/folders/<folder_name>', methods=['GET', 'POST', 'DELETE'])
+@authorization_required
 def folder(folder_name):
     try:
         f = Folder.get(name=folder_name)
@@ -137,6 +136,7 @@ def folder(folder_name):
 
 
 @app.route('/folders/<folder_name>/<filename>', methods=['GET', 'DELETE'])
+@authorization_required
 def files(folder_name, filename):
     actual_filename = secure_filename(folder_name + '_' + filename)
 

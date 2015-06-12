@@ -40,6 +40,20 @@ class BaseTestCase(unittest.TestCase):
         data = json.loads(rv.data)
         assert data['message'] == 'error'
 
+    def test_delete_folder(self):
+        rv = self.client.post('/folders', data=json.dumps(dict(name='hello')),
+                              headers={'content-type': 'application/json'})
+        data = json.loads(rv.data)
+        assert data['message'] == 'OK'
+
+        rv = self.client.delete('/folders/hello')
+        data = json.loads(rv.data)
+        assert data['message'] == 'OK'
+
+        rv = self.client.get('/folders')
+        data = json.loads(rv.data)
+        assert data['items'] == []
+
     def tearDown(self):
         os.remove('mydb.db')
 
