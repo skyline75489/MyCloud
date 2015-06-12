@@ -34,7 +34,7 @@ var LoginForm = React.createClass({
     var self = this;
     Api.doLogin(payload, function(data){
       self.props.doLogin(data);
-    })
+    });
   },
   render: function() {
     return (
@@ -448,15 +448,16 @@ var App = React.createClass({
     });
   },
   doLogin: function(data) {
+    Cookies.set('token', data.token, { expires: 7 });
     this.setState({
       login: true,
     });
-    Cookies.set('token', data.token, { expires: 7 });
   },
   render: function() {
     if (!this.state.login) {
       return (
         <div className="row">
+          <Navbar brand='MyCloud' />
           <LoginForm doLogin={this.doLogin}/>
         </div>
       );
