@@ -40,6 +40,25 @@ var Api = {
       }
     });
   },
+  doDeleteRequest: function(url, callback) {
+     $.ajax({
+      url: url,
+      dataType: 'json',
+      type: 'DELETE',
+      success: function(data) {
+        console.log(url, status, data);
+        if (data.message === 'OK') {
+          callback && callback(data);
+        } else {
+          callback && callback(false);
+        }
+      },
+      error: function(xhr, status, err) {
+        callback && callback(false);
+        console.error(url, status, err.toString());
+      }
+    });
+  },
   doLogin: function(payload, callback) {
     this.doPostRequest(this.baseURL + '/login', payload, callback);
   },
@@ -51,6 +70,9 @@ var Api = {
   },
   addFolder: function(payload, callback) {
     this.doPostRequest(this.baseURL + '/folders', payload, callback);
+  },
+  deleteFolder: function(folderName, callback) {
+    this.doDeleteRequest(this.baseURL + '/folders/' + folderName, callback);
   },
   getFilesInFolder: function(folderName, callback) {
     this.doGetRequest(this.baseURL + '/folders/' + folderName , callback);
@@ -75,5 +97,8 @@ var Api = {
         console.error(url, status, err.toString());
       }
     });
+  },
+  deleteFile: function(folderName, fileName, callback) {
+    this.doDeleteRequest(this.baseURL + '/folders/' + folderName + '/' + fileName, callback);
   }
 }

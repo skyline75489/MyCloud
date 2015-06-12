@@ -159,24 +159,74 @@ var FolderPanel = React.createClass({
       return callback && callback(true);
     });
   },
+  removeFolder: function(folderName) {
+    var self = this;
+    Api.getFilesInFolder(folderName, function(data) {
+      if (data.items.length > 0) {
+        swal("Error", "This folder is not empty!", "error");
+      } else {
+        swal({
+          title: "Are you sure?",
+          text: "You will not be able to recover this folder!",
+          type: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#DD6B55",
+          confirmButtonText: "Yes, delete it!",
+          cancelButtonText: "No, cancel plx!",
+          closeOnConfirm: false,
+          closeOnCancel: false
+        },
+        function(isConfirm){
+          if (isConfirm) {
+            swal("Deleted!", "Your folder has been deleted.", "success");
+            Api.deleteFolder(folderName, function() {
+              self.updateFolderList();
+            });
+          } else {
+            swal("Cancelled", "Your folder is safe :)", "error");
+          }
+        });
+      }
+    });
+  },
   onSelectFolder: function(folderName) {
     this.refs.filePanel.updateFileList(folderName);
   },
   render: function() {
     var folderList = [];
     var data = this.state.folders;
+
+    var folderIconStyle = {
+      marginRight: '5px'
+    };
+    var operationIconStyle = {
+      float: 'right',
+      marginRight: '5px',
+    };
+
     for (var k in data) {
       var val = data[k];
       var self = this;
       folderList.push(
-        <ListGroupItem key={makeKey()} onClick={(function() {
-            var name = val;
-            return function doSelect() {
-              console.log(name);
-              self.onSelectFolder(name);
-            };
-          })()} href="#">
-          <Glyphicon glyph='folder-close' /><span>{val}</span>
+        <ListGroupItem role="menu" key={makeKey()} >
+          <a role="menuitem" onClick={(function() {
+              var name = val;
+              return function doSelect() {
+                self.onSelectFolder(name);
+              };
+            })()}>
+            <Glyphicon style={folderIconStyle} glyph='folder-close' /><span>{val}</span>
+          </a>
+
+          <a onClick={(function() {
+              var name = val;
+              return function doSelect() {
+                self.removeFolder(name);
+              };
+            })()}>
+            <Glyphicon style={operationIconStyle} glyph='remove' />
+          </a>
+
         </ListGroupItem>
       );
     }
@@ -298,14 +348,60 @@ var FilePanel = React.createClass({
       return callback && callback(true);
     });
   },
+  removeFile: function(fileName) {
+    var self = this;
+    swal({
+      title: "Are you sure?",
+      text: "You will not be able to recover this file!",
+      type: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#DD6B55",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "No, cancel plx!",
+      closeOnConfirm: false,
+      closeOnCancel: false
+    },
+    function(isConfirm){
+      if (isConfirm) {
+        swal("Deleted!", "Your file has been deleted.", "success");
+        Api.deleteFile(self.state.folderName, fileName, function() {
+          self.updateFileList(self.state.folderName);
+        });
+      } else {
+        swal("Cancelled", "Your file is safe :)", "error");
+      }
+    });
+  },
   render: function() {
     var fileList = [];
     var data = this.state.files;
+
+    var fileIconStyle = {
+      marginRight: '5px'
+    };
+    var operationIconStyle = {
+      float: 'right',
+      marginRight: '5px',
+    };
+
     for (var k in data) {
       var val = data[k];
+      var self = this;
       fileList.push(
-        <ListGroupItem key={makeKey()} href='#'>
-          <Glyphicon glyph='file' /><span>{val}</span>
+        <ListGroupItem key={makeKey()}>
+
+          <Glyphicon style={fileIconStyle} glyph='file' /><span>{val}</span>
+          <a onClick={(function() {
+              var name = val;
+              return function doSelect() {
+                self.removeFile(name);
+              };
+            })()}>
+            <Glyphicon style={operationIconStyle} glyph='remove' />
+          </a>
+          <a><Glyphicon style={operationIconStyle} glyph='download-alt' /></a>
+          <Glyphicon style={operationIconStyle} glyph='share' />
+
         </ListGroupItem>
       );
     }

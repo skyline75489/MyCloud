@@ -103,7 +103,7 @@ def folders():
         return jsonify(message='OK', items=items)
 
 
-@app.route('/folders/<folder_name>', methods=['GET', 'POST'])
+@app.route('/folders/<folder_name>', methods=['GET', 'POST', 'DELETE'])
 def folder(folder_name):
     try:
         f = Folder.get(name=folder_name)
@@ -113,17 +113,43 @@ def folder(folder_name):
     if request.method == 'POST':
         file = request.files['file']
         if file:
-            filename = secure_filename(folder_name + '_' + file.filename)
-            if os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], filename)):
+            actual_filename = secure_filename(folder_name + '_' + file.filename)
+            if os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], actual_filename)):
                 return jsonify(message='error')
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], actual_filename))
             f2 = File.create(folder=folder_name, filename=file.filename)
             f2.save()
             return jsonify(message='OK')
+
     if request.method == 'GET':
         files = File.select().where(File.folder == folder_name)
         items = [x.filename for x in files]
         return jsonify(message='OK', items=items)
+
+    if request.method == 'DELETE':
+        try:
+            f.delete_instance()
+        except peewee.IntegrityError:
+            return jsonify(message='error')
+        return jsonify(message='OK')
+
+
+@app.route('/folders/<folder_name>/<filename>', methods=['GET', 'DELETE'])
+def files(folder_name, filename):
+    try:
+        f = File.get(filename=filename)
+    except peewee.DoesNotExist:
+        return jsonify(message='error')
+
+    actual_filename = secure_filename(folder_name + '_' + filename)
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], actual_filename)
+
+    if os.path.exists(file_path):
+        f.delete_instance()
+        os.remove(file_path)
+        return jsonify(message='OK')
+    else:
+        return jsonify(message='error')
 
 
 @app.route('/', methods=['GET'])
