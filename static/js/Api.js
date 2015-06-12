@@ -98,6 +98,9 @@ var Api = {
       }
     });
   },
+  getDownloadFileURL: function(folderName, fileName, callback) {
+    return this.baseURL + '/folders/' + folderName + '/' + fileName;
+  },
   deleteFile: function(folderName, fileName, callback) {
     this.doDeleteRequest(this.baseURL + '/folders/' + folderName + '/' + fileName, callback);
   }

@@ -399,7 +399,10 @@ var FilePanel = React.createClass({
             })()}>
             <Glyphicon style={operationIconStyle} glyph='remove' />
           </a>
-          <a><Glyphicon style={operationIconStyle} glyph='download-alt' /></a>
+          <a href={Api.getDownloadFileURL(self.state.folderName, val)}>
+            <Glyphicon style={operationIconStyle} glyph='download-alt' />
+          </a>
+
           <Glyphicon style={operationIconStyle} glyph='share' />
 
         </ListGroupItem>

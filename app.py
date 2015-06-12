@@ -1,7 +1,7 @@
 import os
 from functools import wraps
 
-from flask import Flask, request, render_template, jsonify, redirect, url_for
+from flask import Flask, request, render_template, jsonify, redirect, url_for, send_from_directory
 
 from itsdangerous import (TimedJSONWebSignatureSerializer
                           as Serializer, BadSignature, SignatureExpired)
@@ -113,10 +113,12 @@ def folder(folder_name):
     if request.method == 'POST':
         file = request.files['file']
         if file:
-            actual_filename = secure_filename(folder_name + '_' + file.filename)
+            actual_filename = secure_filename(
+                folder_name + '_' + file.filename)
             if os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], actual_filename)):
                 return jsonify(message='error')
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], actual_filename))
+            file.save(
+                os.path.join(app.config['UPLOAD_FOLDER'], actual_filename))
             f2 = File.create(folder=folder_name, filename=file.filename)
             f2.save()
             return jsonify(message='OK')
@@ -136,20 +138,26 @@ def folder(folder_name):
 
 @app.route('/folders/<folder_name>/<filename>', methods=['GET', 'DELETE'])
 def files(folder_name, filename):
-    try:
-        f = File.get(filename=filename)
-    except peewee.DoesNotExist:
-        return jsonify(message='error')
-
     actual_filename = secure_filename(folder_name + '_' + filename)
-    file_path = os.path.join(app.config['UPLOAD_FOLDER'], actual_filename)
 
-    if os.path.exists(file_path):
-        f.delete_instance()
-        os.remove(file_path)
-        return jsonify(message='OK')
-    else:
-        return jsonify(message='error')
+    if request.method == 'GET':
+        return send_from_directory(app.config['UPLOAD_FOLDER'], actual_filename)
+
+    if request.method == 'DELETE':
+        try:
+            f = File.get(filename=filename)
+        except peewee.DoesNotExist:
+            return jsonify(message='error')
+
+        actual_filename = secure_filename(folder_name + '_' + filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], actual_filename)
+
+        if os.path.exists(file_path):
+            f.delete_instance()
+            os.remove(file_path)
+            return jsonify(message='OK')
+        else:
+            return jsonify(message='error')
 
 
 @app.route('/', methods=['GET'])
