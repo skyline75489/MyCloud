@@ -59,6 +59,27 @@ var Api = {
       }
     });
   },
+  doPutRequest: function(url, payload, callback) {
+     $.ajax({
+      url: url,
+      dataType: 'json',
+      type: 'PUT',
+      data: JSON.stringify(payload),
+      contentType: "application/json; charset=utf-8",
+      success: function(data) {
+        console.log(url, status, data);
+        if (data.message === 'OK') {
+          callback && callback(data);
+        } else {
+          callback && callback(false);
+        }
+      },
+      error: function(xhr, status, err) {
+        callback && callback(false);
+        console.error(url, status, err.toString());
+      }
+    });
+  },
   doLogin: function(payload, callback) {
     this.doPostRequest(this.baseURL + '/login', payload, callback);
   },
@@ -101,7 +122,13 @@ var Api = {
   getDownloadFileURL: function(folderName, fileName, callback) {
     return this.baseURL + '/folders/' + folderName + '/' + fileName;
   },
+  getFileInfo: function(folderName, fileName, callback) {
+    this.doGetRequest(this.baseURL + '/folders/' + folderName + '/' + fileName + '?query=info' , callback);
+  },
   deleteFile: function(folderName, fileName, callback) {
     this.doDeleteRequest(this.baseURL + '/folders/' + folderName + '/' + fileName, callback);
+  },
+  updataFileShareType: function(folderName, fileName, payload, callback) {
+    this.doPutRequest(this.baseURL + '/folders/' + folderName + '/' + fileName, payload, callback);
   }
 }

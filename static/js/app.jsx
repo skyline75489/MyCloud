@@ -322,11 +322,16 @@ var UploadFileModalTrigger = React.createClass({
 var ShareFileModal = React.createClass({
   getInitialState: function() {
     return {
-      error: false
+      error: false,
     };
   },
   saveShareOption: function() {
-
+    var radio = $("input[name='shareType']:checked").val();
+    var payload = {shareType: radio};
+    var self = this;
+    Api.updataFileShareType(this.props.folderName, this.props.fileName, payload, function(ret) {
+      self.props.onRequestHide();
+    });
   },
   render: function() {
     if (this.state.error) {
@@ -338,17 +343,18 @@ var ShareFileModal = React.createClass({
     } else {
       var alert = <span></span>;
     }
-
-    var publicURL = 'Public: ' + Api.baseURL + '/s/' + this.props.public;
-    var privateURL = 'Private: ' + Api.baseURL + '/s/' + this.props.private + '    Password: ' + this.props.password;
+    var data = this.props.data;
+    var publicURL = 'Public: ' + Api.baseURL + '/s/' + data.public;
+    var privateURL = 'Private: ' + Api.baseURL + '/s/' + data.private + '    Password: ' + data.password;
     return (
       <Modal {...this.props} title='Share'>
         <div className='modal-body'>
         {alert}
           <form ref="form">
-            <Input name="shareType" type='radio' label={publicURL} defaultChecked={this.props.openPublic}/>
-            <Input name="shareType" type='radio' label={privateURL} defaultChecked={this.props.openPrivate}/>
-            <Input name="shareType" type='radio' label='Do not share' defaultChecked={!(this.props.openPrivate || this.props.openPublic)}/>
+            <Input name="shareType" type='radio' label={publicURL} value='openPublic' defaultChecked={
+              data.openPublic}/>
+            <Input name="shareType" type='radio' label={privateURL} value='openPrivate'  defaultChecked={data.openPrivate}/>
+            <Input name="shareType" type='radio' label='Do not share' value='None' defaultChecked={!(data.openPrivate || data.openPublic)}/>
           </form>
         </div>
         <div className='modal-footer'>
@@ -364,12 +370,23 @@ var ShareFileModalTrigger = React.createClass({
   mixins: [OverlayMixin],
   getInitialState() {
     return {
-      isModalOpen: false
+      isModalOpen: false,
+      data: {
+        public: '',
+        private: '',
+        password: '',
+        openPublic: '',
+        openPrivate: '',
+      }
     };
   },
   handleToggle() {
-    this.setState({
-      isModalOpen: !this.state.isModalOpen
+    var self = this;
+    Api.getFileInfo(this.props.folderName, this.props.fileName, function(data) {
+      self.setState({
+        isModalOpen: !self.state.isModalOpen,
+        data: data.payload,
+      });
     });
   },
   render() {
@@ -390,7 +407,7 @@ var ShareFileModalTrigger = React.createClass({
       return <span/>;
     }
     return (
-      <ShareFileModal onRequestHide={this.handleToggle} {...this.props}/>
+      <ShareFileModal onRequestHide={this.handleToggle} {...this.props} data={this.state.data}/>
     );
   }
 });
@@ -482,9 +499,6 @@ var FilePanel = React.createClass({
           <ShareFileModalTrigger 
             folderName={self.state.folderName}
             fileName={val.filename}
-            public={val.public}
-            private={val.private}
-            password={val.password}
             openPublic={val.openPublic}
             openPrivate={val.openPrivate}
           />

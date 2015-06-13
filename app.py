@@ -129,7 +129,7 @@ def folder(folder_name):
                   'openPublic': x.open_public_share,
                   'openPrivate': x.open_private_share
                   } for x in files]
-                 
+
         return jsonify(message='OK', items=items)
 
     if request.method == 'DELETE':
@@ -140,19 +140,31 @@ def folder(folder_name):
         return jsonify(message='OK')
 
 
-@app.route('/folders/<folder_name>/<filename>', methods=['GET', 'DELETE'])
+@app.route('/folders/<folder_name>/<filename>', methods=['GET', 'DELETE', 'PUT'])
 @authorization_required
 def files(folder_name, filename):
     actual_filename = secure_filename(folder_name + '_' + filename)
 
+    try:
+        f = File.get(filename=filename)
+    except peewee.DoesNotExist:
+        return jsonify(message='error')
+
     if request.method == 'GET':
+        if request.args['query'] == 'info':
+            x = f
+            payload = {'filename': x.filename,
+                       'public': x.public_share_url,
+                       'private': x.private_share_url,
+                       'password': x.private_share_password,
+                       'openPublic': x.open_public_share,
+                       'openPrivate': x.open_private_share
+                       }
+            return jsonify(message='OK', payload=payload)
+            
         return send_from_directory(app.config['UPLOAD_FOLDER'], actual_filename)
 
     if request.method == 'DELETE':
-        try:
-            f = File.get(filename=filename)
-        except peewee.DoesNotExist:
-            return jsonify(message='error')
 
         actual_filename = secure_filename(folder_name + '_' + filename)
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], actual_filename)
@@ -164,8 +176,22 @@ def files(folder_name, filename):
         else:
             return jsonify(message='error')
 
+    if request.method == 'PUT':
+        req = request.get_json()
+        share_type = req['shareType']
+        if share_type == 'openPrivate':
+            f.open_private_share = True
+            f.open_public_share = False
+        elif share_type == 'openPublic':
+            f.open_private_share = False
+            f.open_public_share = True
+        elif share_type == 'None':
+            f.open_public_share = False
+            f.open_private_share = False
+        f.save()
+        return jsonify(message='OK')
 
-@app.route('/')
+
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
