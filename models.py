@@ -4,6 +4,7 @@ db = SqliteDatabase('mydb.db', threadlocals=True)
 
 
 class BaseModel(Model):
+
     class Meta:
         database = db
 
@@ -15,12 +16,12 @@ class Folder(BaseModel):
 class File(BaseModel):
     folder = ForeignKeyField(Folder, related_name='files', to_field='name')
     filename = CharField()
-    public_share_url = CharField()
-    private_share_url = CharField()
+    public_share_url = CharField(index=True)
+    private_share_url = CharField(index=True)
     private_share_password = CharField()
     open_public_share = BooleanField()
     open_private_share = BooleanField()
-    
+
 
 def create_all_tables():
     db.connect()

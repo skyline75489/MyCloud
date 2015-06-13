@@ -130,5 +130,8 @@ var Api = {
   },
   updataFileShareType: function(folderName, fileName, payload, callback) {
     this.doPutRequest(this.baseURL + '/folders/' + folderName + '/' + fileName, payload, callback);
+  },
+  getFileInfoByShareURL: function(path, callback) {
+    this.doGetRequest(this.baseURL + '/share/' +  path, callback);
   }
 }

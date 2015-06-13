@@ -161,7 +161,7 @@ def files(folder_name, filename):
                        'openPrivate': x.open_private_share
                        }
             return jsonify(message='OK', payload=payload)
-            
+
         return send_from_directory(app.config['UPLOAD_FOLDER'], actual_filename)
 
     if request.method == 'DELETE':
@@ -190,6 +190,30 @@ def files(folder_name, filename):
             f.open_private_share = False
         f.save()
         return jsonify(message='OK')
+
+
+@app.route('/share/<path>', methods=['GET'])
+def doShare(path):
+    try:
+        f = File.get(File.public_share_url == path)
+    except peewee.DoesNotExist:
+        try:
+            f = File.get(File.private_share_url == path)
+        except peewee.DoesNotExist:
+            return jsonify(message='error')
+
+    if not (f.open_public_share or f.open_private_share) :
+        return jsonify(message='error')
+    payload = {'filename': f.filename,
+               'openPublic': f.open_public_share,
+               'openPrivate': f.open_private_share
+               }
+    return jsonify(message='OK', payload=payload)
+
+
+@app.route('/s/<path>', methods=['GET'])
+def share(path):
+    return render_template('share.html')
 
 
 @app.route('/', methods=['GET'])
