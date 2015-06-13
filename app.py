@@ -151,14 +151,14 @@ def files(folder_name, filename):
         return jsonify(message='error')
 
     if request.method == 'GET':
-        if request.args['query'] == 'info':
-            x = f
-            payload = {'filename': x.filename,
-                       'public': x.public_share_url,
-                       'private': x.private_share_url,
-                       'password': x.private_share_password,
-                       'openPublic': x.open_public_share,
-                       'openPrivate': x.open_private_share
+        args = request.args
+        if 'query' in args and args['query'] == 'info':
+            payload = {'filename': f.filename,
+                       'public': f.public_share_url,
+                       'private': f.private_share_url,
+                       'password': f.private_share_password,
+                       'openPublic': f.open_public_share,
+                       'openPrivate': f.open_private_share
                        }
             return jsonify(message='OK', payload=payload)
 
@@ -202,11 +202,17 @@ def doShare(path):
         except peewee.DoesNotExist:
             return jsonify(message='error')
 
-    if not (f.open_public_share or f.open_private_share) :
+    if not (f.open_public_share or f.open_private_share):
         return jsonify(message='error')
+
+    s = Serializer(app.config['SECRET_KEY'])
+    token = s.dumps({'path': path})
+
     payload = {'filename': f.filename,
+               'folder': f.folder.name,
                'openPublic': f.open_public_share,
-               'openPrivate': f.open_private_share
+               'openPrivate': f.open_private_share,
+               'token': token,
                }
     return jsonify(message='OK', payload=payload)
 

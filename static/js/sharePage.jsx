@@ -42,6 +42,9 @@ var Share = React.createClass({
     var iconStyle = {
       fontSize: '90px',
     };
+    var downloadButtonStyle = {
+      marginTop: '25px'
+    };
     if (!this.state.ready) {
       return <span />;
     }
@@ -57,6 +60,8 @@ var Share = React.createClass({
         </div>
       );
     }
+    var data = this.state.data;
+    var downloadURL = Api.baseURL + '/folders/' + data.folder + '/' + data.filename + '?token=' + data.token;
     return (
       <div>
         <Navbar brand='MyCloud' />
@@ -64,9 +69,9 @@ var Share = React.createClass({
           <div className="col-md-1 col-md-offset-4">
             <Glyphicon glyph='file' style={iconStyle}/>
           </div>
-          <div className="col-md-2">
+          <div className="col-md-4">
             <p>{this.state.data.filename}</p>
-            <Button><Glyphicon glyph='save-file' />Download</Button>
+            <Button href={downloadURL} style={downloadButtonStyle}><Glyphicon glyph='save-file' />Download</Button>
           </div> 
         </div>
       </div>
