@@ -205,6 +205,13 @@ def doShare(path):
     if not (f.open_public_share or f.open_private_share):
         return jsonify(message='error')
 
+    args = request.args
+    if 'password' in args:
+        if args['password'] == f.private_share_password:
+            return jsonify(message='OK')
+        else:
+            return jsonify(message='error')
+
     s = Serializer(app.config['SECRET_KEY'])
     token = s.dumps({'path': path})
 

@@ -133,5 +133,8 @@ var Api = {
   },
   getFileInfoByShareURL: function(path, callback) {
     this.doGetRequest(this.baseURL + '/share/' +  path, callback);
+  },
+  checkShareFilePassword: function(path, password, callback) {
+    this.doGetRequest(this.baseURL + '/share/' +  path + '?password=' +  password, callback);
   }
 }

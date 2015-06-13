@@ -16,6 +16,7 @@ var Share = React.createClass({
     return {
       ready: false,
       error: false,
+      permitted: false,
       data: []
     };
   },
@@ -27,7 +28,7 @@ var Share = React.createClass({
       if (!ret) {
         self.setState({
           error: true,
-          ready: true
+          ready: true,
         });
       }
       else if (ret.message == 'OK') {
@@ -61,6 +62,39 @@ var Share = React.createClass({
       );
     }
     var data = this.state.data;
+
+    var currentURL = window.location.href;
+    var path = currentURL.split('/').slice(-1)[0];
+
+    if (data.openPrivate && Cookies.get(path) !== 'OK') {
+      swal({
+        title: "Private Share",
+        text: "Please type the password",
+        type: "input",
+        showCancelButton: false,
+        closeOnConfirm: false,
+        animation: "slide-from-top",
+        inputType: "password",
+        inputPlaceholder: "Write something"
+      },
+      function(inputValue){
+        if (inputValue === false) return false;
+        
+        if (inputValue === "") {
+          swal.showInputError("Empty password is not allowed!");
+          return false
+        }
+        Api.checkShareFilePassword(path, inputValue, function(ret) {
+          if (ret === false) {
+            swal.showInputError("Wrong password!");
+          } else {
+            Cookies.set(path, 'OK', { expires: 1 });
+            swal.close();
+          }
+        })
+      });
+    }
+
     var downloadURL = Api.baseURL + '/folders/' + data.folder + '/' + data.filename + '?token=' + data.token;
     return (
       <div>
