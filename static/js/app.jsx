@@ -9,6 +9,7 @@ var {
   ListGroup,
   ListGroupItem,
   Glyphicon,
+  ButtonInput,
 } = ReactBootstrap;
 
 function makeKey()
@@ -333,6 +334,14 @@ var ShareFileModal = React.createClass({
       self.props.onRequestHide();
     });
   },
+  showQRCode: function(url) {
+    swal({
+      title: "<small>QRCode</small>",
+      html: true,
+      imageUrl: "http://qrickit.com/api/qr?d=" + url + 'qrsize=150',
+      imageSize: "150x150"
+    });
+  },
   render: function() {
     if (this.state.error) {
       var alert = (
@@ -360,13 +369,19 @@ var ShareFileModal = React.createClass({
                 <Input name="shareType" type="radio" label="Do not share" value="None" defaultChecked={!(data.openPrivate || data.openPublic)}/>
               </form>
             </div>
-            <div className="col-md-8">
+            <div className="col-md-6">
               <form ref="form2">
-                <Input type="text" defaultValue={publicURL} bsSize="small" readonly={true} />
+                <Input type="text" defaultValue={publicURL} bsSize="xsmall" readonly={true} />
                 <div className="input-group">
-                  <Input type="text" defaultValue={privateURL} bsSize="small" readonly={true} />
+                  <Input type="text" defaultValue={privateURL} bsSize="xsmall" readonly={true} />
                   <span className="input-group-addon">{password}</span>
                 </div>
+              </form>
+            </div>
+            <div className="col-md-3">
+              <form ref="form3">
+                <ButtonInput value="Get QRCode" bsSize="small" bsStyle='info' onClick={()=>{this.showQRCode(publicURL)}}/>
+                <ButtonInput value="Get QRCode" bsSize="small" bsStyle='info' onClick={()=>{this.showQRCode(privateURL)}}/>
               </form>
             </div>
           </div>
