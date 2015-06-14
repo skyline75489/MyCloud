@@ -336,7 +336,7 @@ var ShareFileModal = React.createClass({
   render: function() {
     if (this.state.error) {
       var alert = (
-        <Alert bsStyle='danger'>
+        <Alert bsStyle="danger">
           <strong>Error: </strong>Please check your file name again.
         </Alert>
       );
@@ -344,22 +344,36 @@ var ShareFileModal = React.createClass({
       var alert = <span></span>;
     }
     var data = this.props.data;
-    var publicURL = 'Public: ' + Api.baseURL + '/s/' + data.public;
-    var privateURL = 'Private: ' + Api.baseURL + '/s/' + data.private + '    Password: ' + data.password;
+    var publicURL = Api.baseURL + '/s/' + data.public;
+    var privateURL = Api.baseURL + '/s/' + data.private;
+    var password = data.password;
     return (
       <Modal {...this.props} title='Share'>
         <div className='modal-body'>
         {alert}
-          <form ref="form">
-            <Input name="shareType" type='radio' label={publicURL} value='openPublic' defaultChecked={
-              data.openPublic}/>
-            <Input name="shareType" type='radio' label={privateURL} value='openPrivate'  defaultChecked={data.openPrivate}/>
-            <Input name="shareType" type='radio' label='Do not share' value='None' defaultChecked={!(data.openPrivate || data.openPublic)}/>
-          </form>
+          <div className="row">
+            <div className="col-md-3">
+              <form ref="form">
+                <Input name="shareType" type="radio" label="Public" value="openPublic" defaultChecked={
+                  data.openPublic}/>
+                <Input name="shareType" type="radio" label="Private" value="openPrivate"  defaultChecked={data.openPrivate}/>
+                <Input name="shareType" type="radio" label="Do not share" value="None" defaultChecked={!(data.openPrivate || data.openPublic)}/>
+              </form>
+            </div>
+            <div className="col-md-8">
+              <form ref="form2">
+                <Input type="text" defaultValue={publicURL} bsSize="small" readonly={true} />
+                <div className="input-group">
+                  <Input type="text" defaultValue={privateURL} bsSize="small" readonly={true} />
+                  <span className="input-group-addon">{password}</span>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
-        <div className='modal-footer'>
+        <div className="modal-footer">
           <Button onClick={this.props.onRequestHide}>Close</Button>
-          <Button bsStyle='primary' onClick={this.saveShareOption}>Save</Button>
+          <Button bsStyle="primary" onClick={this.saveShareOption}>Save</Button>
         </div>
       </Modal>
     );
