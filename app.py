@@ -10,7 +10,9 @@ from itsdangerous import (TimedJSONWebSignatureSerializer
 from werkzeug import secure_filename
 
 from models import Folder, File
+
 import peewee
+import qrcode
 
 from utils import generate_url, generate_password
 
@@ -227,6 +229,19 @@ def doShare(path):
 @app.route('/s/<path>', methods=['GET'])
 def share(path):
     return render_template('share.html')
+
+
+@app.route('/qr', methods=['GET'])
+def gen_qrcode():
+    args = request.args
+    data = args['d']
+    img = qrcode.make(data)
+    filename = str(hash(data)) + '.png'
+    path = os.path.join(app.config['QRCODE_FOLDER'], filename)
+    if not os.path.exists(path):
+        img.save(path)
+
+    return send_from_directory(app.config['QRCODE_FOLDER'], filename)
 
 
 @app.route('/', methods=['GET'])

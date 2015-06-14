@@ -338,7 +338,7 @@ var ShareFileModal = React.createClass({
     swal({
       title: "<small>QRCode</small>",
       html: true,
-      imageUrl: "http://qrickit.com/api/qr?d=" + url + 'qrsize=150',
+      imageUrl: Api.baseURL + "/qr?d=" + url,
       imageSize: "150x150"
     });
   },
