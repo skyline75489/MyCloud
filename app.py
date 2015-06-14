@@ -40,7 +40,7 @@ def authorization_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         if not test_authorization():
-            return jsonify(message='Not Authorized')
+            return jsonify(message='Not Authorized'), 401
         return f(*args, **kwargs)
     return wrapper
 
@@ -67,7 +67,7 @@ def login():
         return jsonify(message='OK',
                        token=s.dumps({'key': app.config['SECRET_KEY']}))
     else:
-        return jsonify(message='Failed')
+        return jsonify(message='error'), 403
 
 
 @app.route('/login/testAuth', methods=['GET'])
@@ -75,7 +75,7 @@ def test_auth():
     if test_authorization():
         return jsonify(message='OK')
     else:
-        return jsonify(message='Not Authorized')
+        return jsonify(message='Not Authorized'), 401
 
 
 @app.route('/folders', methods=['GET', 'POST'])
@@ -86,10 +86,10 @@ def folders():
         try:
             f = Folder.create(name=req['name'])
             f.save()
-            return jsonify(message='OK')
+            return jsonify(message='OK'), 201
         except peewee.IntegrityError as e:
             print e
-            return jsonify(message='error')
+            return jsonify(message='error'), 409
 
     if request.method == 'GET':
         folders = Folder.select()
@@ -103,7 +103,7 @@ def folder(folder_name):
     try:
         f = Folder.get(name=folder_name)
     except peewee.DoesNotExist:
-        return jsonify(message='error')
+        return jsonify(message='error'), 404
 
     if request.method == 'POST':
         file = request.files['file']
@@ -111,14 +111,14 @@ def folder(folder_name):
             actual_filename = secure_filename(
                 folder_name + '_' + file.filename)
             if os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], actual_filename)):
-                return jsonify(message='error')
+                return jsonify(message='error'), 409
             file.save(
                 os.path.join(app.config['UPLOAD_FOLDER'], actual_filename))
             f2 = File.create(folder=folder_name, filename=file.filename, public_share_url=generate_url(),
                              private_share_url=generate_url(), private_share_password=generate_password(),
                              open_public_share=False, open_private_share=False)
             f2.save()
-            return jsonify(message='OK')
+            return jsonify(message='OK'), 201
 
     if request.method == 'GET':
         files = File.select().where(File.folder == folder_name)
@@ -136,7 +136,7 @@ def folder(folder_name):
         try:
             f.delete_instance()
         except peewee.IntegrityError:
-            return jsonify(message='error')
+            return jsonify(message='error'), 409
         return jsonify(message='OK')
 
 
@@ -148,7 +148,7 @@ def files(folder_name, filename):
     try:
         f = File.get(filename=filename)
     except peewee.DoesNotExist:
-        return jsonify(message='error')
+        return jsonify(message='error'), 404
 
     if request.method == 'GET':
         args = request.args
@@ -174,7 +174,7 @@ def files(folder_name, filename):
             os.remove(file_path)
             return jsonify(message='OK')
         else:
-            return jsonify(message='error')
+            return jsonify(message='error'), 404
 
     if request.method == 'PUT':
         req = request.get_json()
@@ -200,17 +200,17 @@ def doShare(path):
         try:
             f = File.get(File.private_share_url == path)
         except peewee.DoesNotExist:
-            return jsonify(message='error')
+            return jsonify(message='error'), 404
 
     if not (f.open_public_share or f.open_private_share):
-        return jsonify(message='error')
+        return jsonify(message='error'), 404
 
     args = request.args
     if 'password' in args:
         if args['password'] == f.private_share_password:
             return jsonify(message='OK')
         else:
-            return jsonify(message='error')
+            return jsonify(message='error'), 401
 
     s = Serializer(app.config['SECRET_KEY'])
     token = s.dumps({'path': path})
