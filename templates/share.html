@@ -4,7 +4,6 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>MyCloud</title>
     <script src="{{ url_for('static', filename='js/react.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/JSXTransformer.js') }}"></script>    
     <script src="{{ url_for('static', filename='js/jquery-2.1.3.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/react-bootstrap.min.js') }}"></script>
@@ -17,6 +16,6 @@
   </head>
   <body>
     <div id="content" class="container"></div>
-      <script type="text/jsx" src="{{ url_for('static', filename='js/sharePage.jsx') }}"></script>
+      <script src="{{ url_for('static', filename='js/build/sharePage.js') }}"></script>
   </body>
 </html>
