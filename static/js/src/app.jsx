@@ -441,6 +441,76 @@ var ShareFileModalTrigger = React.createClass({
   }
 });
 
+var PreviewFileModal = React.createClass({
+  getInitialState: function() {
+    return {
+      error: false,
+    };
+  },
+  render: function() {
+    var url = Api.getDownloadFileURL(this.props.folderName, this.props.fileName);
+    if (this.props.fileName.endsWith('.mp3')) {
+      var body = (
+        <audio controls="controls">
+          Your browser does not support the <code>audio</code> element.
+          <source src={url} type="audio/mp3" />
+        </audio>
+      );
+    } else if (this.props.fileName.endsWith('.txt')) {
+      var body = (
+        <iframe src={url}></iframe>
+      );
+    } else if (this.props.fileName.endsWith('.jpg')) {
+      var body = (
+        <img src={url} />
+      );
+    }
+    return (
+      <Modal {...this.props} title='Preview'>
+        <div className='modal-body'>
+        <p>{this.props.fileName}</p>
+        {body}
+        </div>
+      </Modal>
+    );
+  }
+});
+
+var PreviewFileModalTrigger = React.createClass({
+  mixins: [OverlayMixin],
+  getInitialState() {
+    return {
+      isModalOpen: false,
+    }
+  },
+  handleToggle() {
+    this.setState({
+      isModalOpen: !this.state.isModalOpen,
+    });
+  },
+  render() {
+    var operationIconStyle = {
+      float: 'right',
+      marginRight: '10px',
+      cursor: 'pointer',
+    };
+
+    return (
+      <Glyphicon style={operationIconStyle} onClick={this.handleToggle} glyph='eye-open' />
+    );
+  },
+  // This is called by the `OverlayMixin` when this component
+  // is mounted or updated and the return value is appended to the body.
+  renderOverlay() {
+    if (!this.state.isModalOpen) {
+      return <span/>;
+    }
+    return (
+      <PreviewFileModal onRequestHide={this.handleToggle} {...this.props} />
+    );
+  }
+});
+
 var FilePanel = React.createClass({
   getInitialState: function() {
     return {
@@ -506,10 +576,20 @@ var FilePanel = React.createClass({
       marginRight: '10px',
       cursor: 'pointer',
     };
-
     for (var k in data) {
       var val = data[k];
       var self = this;
+      if (val.filename.endsWith('.mp3') || val.filename.endsWith('.txt')
+        || val.filename.endsWith('.jpg')) {
+        var previewButton = (
+          <PreviewFileModalTrigger
+            folderName={self.state.folderName}
+            fileName={val.filename}
+          />
+        );
+      } else { 
+        var previewButton = <span />;
+      }
       fileList.push(
         <ListGroupItem key={makeKey()}>
 
@@ -531,7 +611,7 @@ var FilePanel = React.createClass({
             openPublic={val.openPublic}
             openPrivate={val.openPrivate}
           />
-
+          {previewButton}
         </ListGroupItem>
       );
     }

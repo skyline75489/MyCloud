@@ -119,7 +119,7 @@ var Api = {
       }
     });
   },
-  getDownloadFileURL: function(folderName, fileName, callback) {
+  getDownloadFileURL: function(folderName, fileName) {
     return this.baseURL + '/folders/' + folderName + '/' + fileName;
   },
   getFileInfo: function(folderName, fileName, callback) {
