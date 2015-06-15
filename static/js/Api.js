@@ -101,7 +101,7 @@ var Api = {
   uploadFile: function(folderName, formData, callback) {
     $.ajax({
       type: "POST",
-      url: "http://localhost:5000/folders/" + folderName,
+      url: this.baseURL +  "/folders/" + folderName,
       cache: false,
       data: formData,
       processData: false,
