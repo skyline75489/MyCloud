@@ -13,7 +13,7 @@ Personal Cloud Storage. Your own cloud with zero censorship.
  
  
   To install required packages: 
-    
+  
         pip install -r requirements.txt
 
 2. Setup Database
