@@ -196,15 +196,20 @@ def files(folder_name, filename):
 
 @app.route('/share/<path>', methods=['GET'])
 def doShare(path):
+    is_private = False
+    is_public = False
+
     try:
         f = File.get(File.public_share_url == path)
+        is_public = True
     except peewee.DoesNotExist:
         try:
             f = File.get(File.private_share_url == path)
+            is_private = True
         except peewee.DoesNotExist:
             return jsonify(message='error'), 404
 
-    if not (f.open_public_share or f.open_private_share):
+    if not ((is_public and f.open_public_share) or (is_private and f.open_private_share)):
         return jsonify(message='error'), 404
 
     args = request.args
