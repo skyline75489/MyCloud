@@ -81,27 +81,27 @@ var Api = {
     });
   },
   doLogin: function(payload, callback) {
-    this.doPostRequest(this.baseURL + '/login', payload, callback);
+    this.doPostRequest(`${this.baseURL}/login`, payload, callback);
   },
   testAuth: function(callback) {
-    this.doGetRequest(this.baseURL + '/login/testAuth', callback);
+    this.doGetRequest(`${this.baseURL}/login/testAuth`, callback);
   },
   getFolders: function(callback) {
-    this.doGetRequest(this.baseURL + '/folders', callback)
+    this.doGetRequest(`${this.baseURL}/folders`, callback)
   },
   addFolder: function(payload, callback) {
-    this.doPostRequest(this.baseURL + '/folders', payload, callback);
+    this.doPostRequest(`${this.baseURL}/folders`, payload, callback);
   },
   deleteFolder: function(folderName, callback) {
-    this.doDeleteRequest(this.baseURL + '/folders/' + folderName, callback);
+    this.doDeleteRequest(`${this.baseURL}/folders/${folderName}`, callback);
   },
   getFilesInFolder: function(folderName, callback) {
-    this.doGetRequest(this.baseURL + '/folders/' + folderName , callback);
+    this.doGetRequest(`${this.baseURL}/folders/${folderName}` , callback);
   },
   uploadFile: function(folderName, formData, callback) {
     $.ajax({
       type: "POST",
-      url: this.baseURL +  "/folders/" + folderName,
+      url: `${this.baseURL}/folders/${folderName}`,
       cache: false,
       data: formData,
       processData: false,
@@ -120,21 +120,21 @@ var Api = {
     });
   },
   getDownloadFileURL: function(folderName, fileName) {
-    return this.baseURL + '/folders/' + folderName + '/' + fileName;
+    return `${this.baseURL}/folders/${folderName}/${fileName}`;
   },
   getFileInfo: function(folderName, fileName, callback) {
-    this.doGetRequest(this.baseURL + '/folders/' + folderName + '/' + fileName + '?query=info' , callback);
+    this.doGetRequest(`${this.baseURL}/folders/${folderName}/${fileName}?query=info` , callback);
   },
   deleteFile: function(folderName, fileName, callback) {
-    this.doDeleteRequest(this.baseURL + '/folders/' + folderName + '/' + fileName, callback);
+    this.doDeleteRequest(`${this.baseURL}/folders/${folderName}/${fileName}`, callback);
   },
   updataFileShareType: function(folderName, fileName, payload, callback) {
-    this.doPutRequest(this.baseURL + '/folders/' + folderName + '/' + fileName, payload, callback);
+    this.doPutRequest(`${this.baseURL}/folders/${folderName}/${fileName}`, payload, callback);
   },
   getFileInfoByShareURL: function(path, callback) {
-    this.doGetRequest(this.baseURL + '/share/' +  path, callback);
+    this.doGetRequest(`${this.baseURL}/share/${path}`, callback);
   },
   checkShareFilePassword: function(path, password, callback) {
-    this.doGetRequest(this.baseURL + '/share/' +  path + '?password=' +  password, callback);
+    this.doGetRequest(`${this.baseURL}/share/${path}?password=${password}`, callback);
   }
 }

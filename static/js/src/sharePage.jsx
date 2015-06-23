@@ -95,7 +95,7 @@ var Share = React.createClass({
       });
     }
 
-    var downloadURL = Api.baseURL + '/folders/' + data.folder + '/' + data.filename + '?token=' + data.token;
+    var downloadURL = `${Api.baseURL}/folders/${data.folder}/${data.filename}?token=${data.token}`;
     return (
       <div>
         <Navbar brand='MyCloud' />

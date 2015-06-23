@@ -362,7 +362,7 @@ var ShareFileModal = React.createClass({
     swal({
       title: "<small>QRCode</small>",
       html: true,
-      imageUrl: Api.baseURL + "/qr?d=" + url,
+      imageUrl: `${Api.baseURL}/qr?d=${url}`,
       imageSize: "150x150"
     });
   },
@@ -377,8 +377,8 @@ var ShareFileModal = React.createClass({
       var alert = <span></span>;
     }
     var data = this.props.data;
-    var publicURL = Api.baseURL + '/s/' + data.public;
-    var privateURL = Api.baseURL + '/s/' + data.private;
+    var publicURL = `${Api.baseURL}/s/${data.public}`;
+    var privateURL = `${Api.baseURL}/s/${data.private}`;
     var password = data.password;
     return (
       <Modal {...this.props} title='Share'>
@@ -395,9 +395,9 @@ var ShareFileModal = React.createClass({
             </div>
             <div className="col-md-6">
               <form ref="form2">
-                <Input type="text" defaultValue={publicURL} bsSize="xsmall" readonly={true} />
+                <Input type="text" defaultValue={publicURL} bsSize={"xsmall"} readOnly={true} />
                 <div className="input-group">
-                  <Input type="text" defaultValue={privateURL} bsSize="xsmall" readonly={true} />
+                  <Input type="text" defaultValue={privateURL} bsSize={"xsmall"} readOnly={true} />
                   <span className="input-group-addon">{password}</span>
                 </div>
               </form>
