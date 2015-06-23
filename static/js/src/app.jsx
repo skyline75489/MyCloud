@@ -229,8 +229,7 @@ var FolderPanel = React.createClass({
       marginRight: '5px',
       cursor: 'pointer',
     };
-    for (var k in data) {
-      var val = data[k];
+    for (var val of data) {
       var self = this;
       folderList.push(
         <ListGroupItem role="menu" key={makeKey()} >
@@ -601,8 +600,7 @@ var FilePanel = React.createClass({
       marginRight: '10px',
       cursor: 'pointer',
     };
-    for (var k in data) {
-      var val = data[k];
+    for (var val of data) {
       var self = this;
       const allowedExt = ['mp3', 'txt', 'jpg', 'png', 'gif'];
       const ext = val.filename.split('.').pop().toLowerCase();
