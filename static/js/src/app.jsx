@@ -472,19 +472,20 @@ var PreviewFileModal = React.createClass({
     };
   },
   render: function() {
-    var url = Api.getDownloadFileURL(this.props.folderName, this.props.fileName);
-    if (this.props.fileName.endsWith('.mp3')) {
+    const url = Api.getDownloadFileURL(this.props.folderName, this.props.fileName);
+    const ext = this.props.fileName.toLowerCase()
+    if (ext.endsWith('mp3')) {
       var body = (
         <audio controls="controls">
           Your browser does not support the <code>audio</code> element.
           <source src={url} type="audio/mp3" />
         </audio>
       );
-    } else if (this.props.fileName.endsWith('.txt')) {
+    } else if (ext.endsWith('txt')) {
       var body = (
-        <iframe src={url}></iframe>
+        <iframe src={url} width={500}></iframe>
       );
-    } else if (this.props.fileName.endsWith('.jpg')) {
+    } else if ( ext.endsWith('jpg') || ext.endsWith('png') || ext.endsWith('gif')) {
       var body = (
         <img src={url} />
       );
@@ -603,8 +604,9 @@ var FilePanel = React.createClass({
     for (var k in data) {
       var val = data[k];
       var self = this;
-      if (val.filename.endsWith('.mp3') || val.filename.endsWith('.txt')
-        || val.filename.endsWith('.jpg')) {
+      const allowedExt = ['mp3', 'txt', 'jpg', 'png', 'gif'];
+      const ext = val.filename.split('.').pop().toLowerCase();
+      if (allowedExt.indexOf(ext) > -1) {
         var previewButton = (
           <PreviewFileModalTrigger
             folderName={self.state.folderName}
