@@ -21,8 +21,8 @@ var Share = React.createClass({
     };
   },
   componentDidMount: function() {
-    var currentURL = window.location.href;
-    var path = currentURL.split('/').slice(-1)[0];
+    const currentURL = window.location.href;
+    const path = currentURL.split('/').slice(-1)[0];
     var self = this;
     Api.getFileInfoByShareURL(path, function(ret) {
       if (!ret) {
@@ -63,8 +63,8 @@ var Share = React.createClass({
     }
     var data = this.state.data;
 
-    var currentURL = window.location.href;
-    var path = currentURL.split('/').slice(-1)[0];
+    const currentURL = window.location.href;
+    const path = currentURL.split('/').slice(-1)[0];
 
     if (data.openPrivate && Cookies.get(path) !== 'OK') {
       swal({

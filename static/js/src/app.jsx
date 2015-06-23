@@ -15,7 +15,7 @@ var {
 function makeKey()
 {
   var text = "";
-  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
   for( var i=0; i < 5; i++ )
      text += possible.charAt(Math.floor(Math.random() * possible.length));
@@ -31,8 +31,8 @@ var LoginForm = React.createClass({
   },
   handleSubmit: function(e) {
     e.preventDefault();
-    var email = this.refs.email.getValue().trim();
-    var password = this.refs.password.getValue().trim();
+    const email = this.refs.email.getValue().trim();
+    const password = this.refs.password.getValue().trim();
     var payload = {
       email: email,
       password: password,
@@ -90,7 +90,7 @@ var CreateFolderModal = React.createClass({
     };
   },
   doAddFolder: function() {
-    var name = this.refs.name.getValue().trim();
+    const name = this.refs.name.getValue().trim();
     var self = this;
     this.props.addFolder(name, function(ret) {
       self.setState({
@@ -350,7 +350,7 @@ var ShareFileModal = React.createClass({
     };
   },
   saveShareOption: function() {
-    var radio = $("input[name='shareType']:checked").val();
+    const radio = $("input[name='shareType']:checked").val();
     var payload = {shareType: radio};
     var self = this;
     Api.updataFileShareType(this.props.folderName, this.props.fileName, payload, function(ret) {
@@ -375,10 +375,10 @@ var ShareFileModal = React.createClass({
     } else {
       var alert = <span></span>;
     }
-    var data = this.props.data;
-    var publicURL = `${Api.baseURL}/s/${data.public}`;
-    var privateURL = `${Api.baseURL}/s/${data.private}`;
-    var password = data.password;
+    const data = this.props.data;
+    const publicURL = `${Api.baseURL}/s/${data.public}`;
+    const privateURL = `${Api.baseURL}/s/${data.private}`;
+    const password = data.password;
     return (
       <Modal {...this.props} title='Share'>
         <div className='modal-body'>
