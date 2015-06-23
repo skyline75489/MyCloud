@@ -1,7 +1,7 @@
 import os
 from functools import wraps
 
-from flask import Flask, request, render_template, jsonify, redirect, url_for, send_from_directory
+from flask import Flask, request, render_template, jsonify, send_from_directory
 
 from itsdangerous import (TimedJSONWebSignatureSerializer
                           as Serializer, BadSignature, SignatureExpired)
@@ -116,21 +116,26 @@ def folder(folder_name):
                 return jsonify(message='error'), 409
             file.save(
                 os.path.join(app.config['UPLOAD_FOLDER'], actual_filename))
-            f2 = File.create(folder=folder_name, filename=file.filename, public_share_url=generate_url(),
-                             private_share_url=generate_url(), private_share_password=generate_password(),
-                             open_public_share=False, open_private_share=False)
+            f2 = File.create(folder=folder_name,
+                             filename=file.filename,
+                             public_share_url=generate_url(),
+                             private_share_url=generate_url(),
+                             private_share_password=generate_password(),
+                             open_public_share=False,
+                             open_private_share=False)
             f2.save()
             return jsonify(message='OK'), 201
 
     if request.method == 'GET':
         files = File.select().where(File.folder == folder_name)
-        items = [{'filename': x.filename,
-                  'public': x.public_share_url,
-                  'private': x.private_share_url,
-                  'password': x.private_share_password,
-                  'openPublic': x.open_public_share,
-                  'openPrivate': x.open_private_share
-                  } for x in files]
+        items = [{
+            'filename': x.filename,
+            'public': x.public_share_url,
+            'private': x.private_share_url,
+            'password': x.private_share_password,
+            'openPublic': x.open_public_share,
+            'openPrivate': x.open_private_share
+        } for x in files]
 
         return jsonify(message='OK', items=items)
 
@@ -155,13 +160,14 @@ def files(folder_name, filename):
     if request.method == 'GET':
         args = request.args
         if 'query' in args and args['query'] == 'info':
-            payload = {'filename': f.filename,
-                       'public': f.public_share_url,
-                       'private': f.private_share_url,
-                       'password': f.private_share_password,
-                       'openPublic': f.open_public_share,
-                       'openPrivate': f.open_private_share
-                       }
+            payload = {
+                'filename': f.filename,
+                'public': f.public_share_url,
+                'private': f.private_share_url,
+                'password': f.private_share_password,
+                'openPublic': f.open_public_share,
+                'openPrivate': f.open_private_share
+            }
             return jsonify(message='OK', payload=payload)
 
         return send_from_directory(app.config['UPLOAD_FOLDER'], actual_filename)
@@ -222,18 +228,14 @@ def doShare(path):
     s = Serializer(app.config['SECRET_KEY'])
     token = s.dumps({'path': path})
 
-    payload = {'filename': f.filename,
-               'folder': f.folder.name,
-               'openPublic': f.open_public_share,
-               'openPrivate': f.open_private_share,
-               'token': token,
-               }
+    payload = {
+        'filename': f.filename,
+        'folder': f.folder.name,
+        'openPublic': f.open_public_share,
+        'openPrivate': f.open_private_share,
+        'token': token,
+    }
     return jsonify(message='OK', payload=payload)
-
-
-@app.route('/s/<path>', methods=['GET'])
-def share(path):
-    return render_template('share.html')
 
 
 @app.route('/qr', methods=['GET'])
@@ -247,6 +249,11 @@ def gen_qrcode():
         img.save(path)
 
     return send_from_directory(app.config['QRCODE_FOLDER'], filename)
+
+
+@app.route('/s/<path>', methods=['GET'])
+def share(path):
+    return render_template('share.html')
 
 
 @app.route('/', methods=['GET'])
