@@ -24,6 +24,11 @@ function makeKey()
 }
 
 var LoginForm = React.createClass({
+  getInitialState: function() {
+    return {
+      error: false
+    };
+  },
   handleSubmit: function(e) {
     e.preventDefault();
     var email = this.refs.email.getValue().trim();
@@ -33,14 +38,33 @@ var LoginForm = React.createClass({
       password: password,
     };
     var self = this;
-    Api.doLogin(payload, function(data){
-      self.props.doLogin(data);
+    Api.doLogin(payload, function(data) {
+      if (data === false) {
+        self.setState({
+          error: true
+        });
+      } else {
+        self.props.doLogin(data);
+        self.setState({
+          error: false
+        });
+      }
     });
   },
   render: function() {
+    if (this.state.error) {
+      var alert = (
+        <Alert bsStyle='danger'>
+          <strong>Error: </strong>Wrong email or password.
+        </Alert>
+      );
+    } else {
+      var alert = <span></span>;
+    }
     return (
       <div className="login col-md-4 col-md-offset-4">
         <h3>Login</h3>
+        {alert}
         <form onSubmit={this.handleSubmit}>
            <Input type="text" placeholder="Email" ref="email"/>
            <Input type="password" placeholder="Password" ref="password"/>
