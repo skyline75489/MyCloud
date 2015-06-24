@@ -1,7 +1,7 @@
 MyCloud
 =======
 
-Personal Cloud Storage. Your own cloud with zero censorship.
+Personal Cloud Storage. Your own cloud with **absolutely zero censorship**.
 
 ## Deployment
 
@@ -9,7 +9,8 @@ Personal Cloud Storage. Your own cloud with zero censorship.
 
   * Linux/Unix
   * Python 2.7
-  * pip 
+  * pip
+  * react-tools
  
  
   To install required packages: 
@@ -22,6 +23,8 @@ Personal Cloud Storage. Your own cloud with zero censorship.
         
 3. Run
 
+		cd static/js
+		./start_jsx_watch.sh
         python app.py
     
 
