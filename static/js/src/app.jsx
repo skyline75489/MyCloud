@@ -1,5 +1,5 @@
 var {
-  Alert ,
+  Alert,
   Button,
   Modal,
   ModalTrigger,
@@ -96,7 +96,7 @@ var CreateFolderModal = React.createClass({
       self.setState({
         error: !ret
       });
-    });            
+    });
   },
   render: function() {
     if (this.state.error) {
@@ -548,7 +548,7 @@ var FilePanel = React.createClass({
     Api.getFilesInFolder(folderName, function(data) {
       self.setState({
         files: data.items,
-        folderName: folderName, 
+        folderName: folderName,
         folderSelected: true,
       })
     });
@@ -611,7 +611,7 @@ var FilePanel = React.createClass({
             fileName={val.filename}
           />
         );
-      } else { 
+      } else {
         var previewButton = <span />;
       }
       fileList.push(
@@ -629,7 +629,7 @@ var FilePanel = React.createClass({
           <a href={Api.getDownloadFileURL(self.state.folderName, val.filename)}>
             <Glyphicon style={operationIconStyle} glyph='download-alt' />
           </a>
-          <ShareFileModalTrigger 
+          <ShareFileModalTrigger
             folderName={self.state.folderName}
             fileName={val.filename}
             openPublic={val.openPublic}

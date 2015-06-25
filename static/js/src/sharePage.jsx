@@ -1,5 +1,5 @@
 var {
-  Alert ,
+  Alert,
   Button,
   Modal,
   ModalTrigger,
@@ -36,7 +36,7 @@ var Share = React.createClass({
           ready: true,
           data: ret.payload
         });
-      } 
+      }
     });
   },
   render: function() {
@@ -79,7 +79,7 @@ var Share = React.createClass({
       },
       function(inputValue){
         if (inputValue === false) return false;
-        
+
         if (inputValue === "") {
           swal.showInputError("Empty password is not allowed!");
           return false
@@ -106,7 +106,7 @@ var Share = React.createClass({
           <div className="col-md-4">
             <p>{this.state.data.filename}</p>
             <Button href={downloadURL} style={downloadButtonStyle}><Glyphicon glyph='save-file' />Download</Button>
-          </div> 
+          </div>
         </div>
       </div>
     );
