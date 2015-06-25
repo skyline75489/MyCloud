@@ -23,9 +23,13 @@ Personal Cloud Storage. Your own cloud with **absolutely zero censorship**.
         
 3. Run
 
+		# Start jsx watching
 		cd static/js
 		./start_jsx_watch.sh
-        python app.py
+		
+		# Start app
+		cd ../..
+		python app.py
     
 
 Go to `localhost:5000` and that's it!
