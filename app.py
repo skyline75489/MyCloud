@@ -218,15 +218,10 @@ def doShare(path):
     if not ((is_public and f.open_public_share) or (is_private and f.open_private_share)):
         return jsonify(message='error'), 404
 
-    args = request.args
-    if 'password' in args:
-        if args['password'] == f.private_share_password:
-            return jsonify(message='OK')
-        else:
-            return jsonify(message='error'), 401
-
     s = Serializer(app.config['SECRET_KEY'])
-    token = s.dumps({'path': path})
+    token = s.dumps({'path': path, 'key': app.config['SECRET_KEY']})
+    
+    args = request.args
 
     payload = {
         'filename': f.filename,
@@ -235,6 +230,15 @@ def doShare(path):
         'openPrivate': f.open_private_share,
         'token': token,
     }
+    
+    if 'password' in args:
+        if args['password'] == f.private_share_password:
+            return jsonify(message='OK')
+        else:
+            return jsonify(message='error'), 401
+    elif is_private:
+        payload['token'] = ''
+        
     return jsonify(message='OK', payload=payload)
 
 
