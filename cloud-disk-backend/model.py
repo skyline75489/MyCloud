@@ -1,6 +1,6 @@
 from peewee import *
 
-db = SqliteDatabase('mydb.db', threadlocals=True)
+db = SqliteDatabase('mydb.db', pragmas=(('foreign_keys', 'on'),))
 
 
 class BaseModel(Model):
@@ -14,10 +14,10 @@ class Folder(BaseModel):
 
 
 class File(BaseModel):
-    folder = ForeignKeyField(Folder, related_name='files', to_field='name')
-    filename = CharField()
-    public_share_url = CharField(index=True)
-    private_share_url = CharField(index=True)
+    folder = ForeignKeyField(Folder, backref='files')
+    filename = CharField(index=True)
+    public_share_url = CharField()
+    private_share_url = CharField()
     private_share_password = CharField()
     open_public_share = BooleanField()
     open_private_share = BooleanField()
