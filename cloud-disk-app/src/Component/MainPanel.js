@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Col from 'react-bootstrap/lib/Col';
 import Row from 'react-bootstrap/lib/Row';
 import ListGroup from 'react-bootstrap/lib/ListGroup';
@@ -18,99 +18,44 @@ import './MainPanel.css';
 
 import Api from '../Logic/Api';
 
-class MainPanel extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            folders: [],
-            showAddFolderDialog: false,
-            addFolderError: false,
+const FolderPanel = (props) => {
+    const [newFolderName, setNewFolderName] = useState('');
 
-            files: [],
-            showUploadFileDialog: false,
-            uploadFileError: false,
-            
-            selectedFolder: '',
-            selectedFile: '',
+    const [folders, setFolders] = useState([]);
+    const [showAddFolderDialog, setShowAddFolderDialog] = useState(false);
+    const [addFolderError, setAddFolderError] = useState(false);
 
-            showFileShareDialog: false,
-        };
-
-        this.addFolder = this.addFolder.bind(this);
-        this.uploadFile = this.uploadFile.bind(this);
-        this.saveFileShareType = this.saveFileShareType.bind(this)
-    }
-
-    refreshFolderList() {
+    const refreshFolderList = () => {
         Api.getFolders()
         .then(response => {
             if (response.ok) {
                 response.json()
                 .then(responseJson => {
                     const firstFolder = responseJson.data[0];
-                    this.setState({
-                        folders: responseJson.data,
-                        selectedFolder: firstFolder,
-                    }, () => {
-                        this.refreshFileList();
-                    });
+                    setFolders(responseJson.data);
+                    props.changeSelectedFolder(firstFolder);
                 })
             }
         })
     }
 
-    refreshFileList() {
-        if (!this.state.selectedFolder) {
-            return;
-        }
-
-        Api.getFolder(this.state.selectedFolder.name)
-        .then(response => {
-            if (response.ok) {
-                response.json()
-                .then(responseJson => {
-                    this.setState({
-                        files: responseJson.data.files,
-                    });
-                })
-            }
-        })
-    }
-
-    changeSelectedFolder(id) {
-        if (this.state.selectedFolder.id === id) {
-            return;
-        }
-
-        this.setState({
-            selectedFolder: this.state.folders.find(x => x.id == id)
-        }, () => {
-            this.refreshFileList();
-        });
-    }
-
-    componentDidMount() {
-        this.refreshFolderList();
-    }
-
-    addFolder() {
-        Api.addFolder(this.newFolderName)
+    useEffect(() => {
+        refreshFolderList()
+    }, []);
+    
+    const addFolder = () => {
+        Api.addFolder(newFolderName)
         .then(response =>
             {
-                this.setState({
-                    addFolderError: !response.ok,
-                });
-
+                setAddFolderError(!response.ok);
                 if (response.ok) {
-                    this.setState({
-                        showAddFolderDialog: false
-                    });
-                    this.refreshFolderList();
+                    setShowAddFolderDialog(false);
+                    refreshFolderList();
                 }
             });
     }
 
-    deleteFolder(folderName) {
+    const deleteFolder = (folderName) => {
         swal({
             title: "Are you sure?",
             text: "You will not be able to recover this folder!",
@@ -127,7 +72,7 @@ class MainPanel extends Component {
                             icon: "success",
                         });
                         
-                        this.refreshFolderList();
+                        refreshFolderList();
                     }
                 });
             } else {
@@ -136,24 +81,107 @@ class MainPanel extends Component {
           });;
     }
 
-    uploadFile() {
-        Api.uploadFile(this.state.selectedFolder.name, this.newUploadFile)
+    var addFolderAlert;
+    if (addFolderError) {
+        addFolderAlert = (
+            <Alert bsStyle='danger'>
+            <strong>Error: </strong>Please check your folder name again.
+            </Alert>
+        );
+    } else {
+        addFolderAlert = <span></span>;
+    }
+
+    const folderList = folders.map(folder =>
+        {
+            return (
+            <ListGroupItem role="menu" key={folder.id}>
+                <a onClick={() => props.changeSelectedFolder(folders.find(x => x.id == folder.id))}>
+                <Glyphicon className="folderIcon" glyph='folder-close' />
+                <span className="folderName">{folder.name}</span>
+                </a>
+                <a onClick={() => deleteFolder(folder.name)}>
+                <Glyphicon className="removeFolderIcon" glyph='remove' />
+                </a>
+            </ListGroupItem>
+            )
+        });
+
+    return (
+        <Col md={4}>
+                <Button id="addFolderButton" onClick={() => setShowAddFolderDialog(true)} bsStyle='primary'>New Folder</Button>
+                <p></p>
+                <ListGroup>
+                    {folderList}
+                </ListGroup>
+
+                <Modal show={showAddFolderDialog} onHide={() => setShowAddFolderDialog(false)}>
+                    <Modal.Header>
+                        <Modal.Title>Add folder</Modal.Title>
+                    </Modal.Header>
+
+                    <Modal.Body>
+                        {addFolderAlert}
+                        <FormControl type="text" placeholder="Folder Name" onChange={evt => setNewFolderName(evt.target.value)} />
+                    </Modal.Body>
+
+                    <Modal.Footer>
+                        <Button onClick={() => setShowAddFolderDialog(false)}>Close</Button>
+                        <Button onClick={() => addFolder()} bsStyle="primary">Add</Button>
+                    </Modal.Footer>
+                </Modal>
+            </Col>
+    );
+}
+
+const FilePanel = (props) => {
+    const [files, setFiles] = useState([]);
+
+    const [newUploadFile, setNewUploadFile] = useState('');
+    const [showUploadFileDialog, setShowUploadFileDialog] = useState(false);
+    const [uploadFileError, setUploadFileError] = useState(false);
+
+    const [selectedFile, setSelectedFile] = useState('');
+
+    const [showFileShareDialog, setShowFileShareDialog] = useState(false);
+
+    const publicShareRadioRef = useRef(null);
+    const privateShareRadioRef = useRef(null);
+    const noShareRadioRef = useRef(null);
+    
+    const refreshFileList = () => {
+        if (!props.selectedFolder) {
+            return;
+        }
+
+        Api.getFolder(props.selectedFolder.name)
+        .then(response => {
+            if (response.ok) {
+                response.json()
+                .then(responseJson => {
+                    setFiles(responseJson.data.files)
+                })
+            }
+        })
+    }
+
+    useEffect(() => {
+        refreshFileList();
+    }, [props.selectedFolder]);
+
+    const uploadFile = () => {
+        Api.uploadFile(props.selectedFolder.name, newUploadFile)
         .then(response =>
             {
-                this.setState({
-                    uploadFileError: !response.ok,
-                });
-
+                setUploadFileError(!response.ok);
                 if (response.ok) {
-                    this.setState({
-                        showUploadFileDialog: false
-                    });
-                    this.refreshFileList();
+                    setShowUploadFileDialog(false);
+                    refreshFileList();
                 }
             });
     }
 
-    deleteFile(filename) {
+    const deleteFile = (filename) => {
         swal({
             title: "Are you sure?",
             text: "You will not be able to recover this file!",
@@ -163,14 +191,14 @@ class MainPanel extends Component {
         })
         .then((willDelete) => {
             if (willDelete) {
-                Api.deleteFile(this.state.selectedFolder.name, filename)
+                Api.deleteFile(props.selectedFolder.name, filename)
                 .then(response => {
                     if (response.ok) {
                         swal("Your file has been deleted.", {
                             icon: "success",
                         });
                         
-                        this.refreshFileList();
+                        refreshFileList();
                     }
                 });
             } else {
@@ -179,208 +207,162 @@ class MainPanel extends Component {
           });;
     }
 
-    generateDownloadUrl(filename) {
-        return Api.generateFileDownloadUrl(this.state.selectedFolder.name, filename);
+    const generateDownloadUrl = (filename) => {
+        return Api.generateFileDownloadUrl(props.selectedFolder.name, filename);
     }
 
-    saveFileShareType() {
+    const saveFileShareType = () => {
         var shareType;
-        if (this.publicShareRadioRef.checked) {
+        if (publicShareRadioRef.checked) {
             shareType = "public";
-        } else if (this.privateShareRadioRef.checked) {
+        } else if (privateShareRadioRef.checked) {
             shareType = "private";
         } else {
             shareType = "none";
         }
 
-        Api.updataFileShareType(this.state.selectedFolder.name, this.state.selectedFile.filename, shareType)
+        Api.updataFileShareType(props.selectedFolder.name, selectedFile.filename, shareType)
         .then(response =>
             {
                 if (response.ok) {
-                    this.setState({
-                        showFileShareDialog: false
-                    });
-
-                    this.refreshFileList();
+                    setShowFileShareDialog(false);
                 }
             });
     }
 
-    render() {
-        const folderList = this.state.folders.map(folder =>
-            {
-                return (
-                <ListGroupItem role="menu" key={folder.id}>
-                    <a onClick={() => this.changeSelectedFolder(folder.id)}>
-                    <Glyphicon className="folderIcon" glyph='folder-close' />
-                    <span className="folderName">{folder.name}</span>
+    const filesList = files.map(file =>
+        {
+            return (
+                <ListGroupItem key={file.id}>
+                    <Glyphicon className="fileIcon" glyph='file' />
+                    <span className="fileName">{file.filename}</span>
+                    <a onClick={() => deleteFile(file.filename)}>
+                    <Glyphicon className="removeFileIcon" glyph='remove' />
                     </a>
-                    <a onClick={() => this.deleteFolder(folder.name)}>
-                    <Glyphicon className="removeFolderIcon" glyph='remove' />
+                    <a href={() => generateDownloadUrl(file.filename)}>
+                    <Glyphicon className="downloadFileIcon" glyph='download-alt' />
+                    </a>
+                    <a onClick={() => { setSelectedFile(file); setShowFileShareDialog(true); }}>
+                    <Glyphicon className="shareFileIcon" glyph='share' />
                     </a>
                 </ListGroupItem>
-                )
-            });
-            
-        var addFolderAlert;
-        if (this.state.addFolderError) {
-            addFolderAlert = (
-                <Alert bsStyle='danger'>
-                <strong>Error: </strong>Please check your folder name again.
-                </Alert>
             );
-        } else {
-            addFolderAlert = <span></span>;
-        }
+        });
 
-        const filesList = this.state.files.map(file =>
-            {
-                return (
-                    <ListGroupItem key={file.id}>
-                        <Glyphicon className="fileIcon" glyph='file' />
-                        <span className="fileName">{file.filename}</span>
-                        <a onClick={() => this.deleteFile(file.filename)}>
-                        <Glyphicon className="removeFileIcon" glyph='remove' />
-                        </a>
-                        <a href={this.generateDownloadUrl(file.filename)}>
-                        <Glyphicon className="downloadFileIcon" glyph='download-alt' />
-                        </a>
-                        <a onClick={() => this.setState({selectedFile: file, showFileShareDialog: true})}>
-                        <Glyphicon className="shareFileIcon" glyph='share' />
-                        </a>
-                    </ListGroupItem>
-                );
-            });
+    var uploadFileAlert;
+    if (uploadFileError) {
+        uploadFileAlert = (
+            <Alert bsStyle='danger'>
+            <strong>Error: </strong>Please check your file name again.
+            </Alert>
+        );
+    } else {
+        uploadFileAlert = <span></span>;
+    }
+    
+    return (
+        <Col md={8}>
+                <Button id="uploadFileButton" onClick={() => setShowUploadFileDialog(true)} bsStyle='primary'>Upload File</Button>
+                <p></p>
+                <ListGroup>
+                    {filesList}
+                </ListGroup>
 
-        var uploadFileAlert;
-        if (this.state.uploadFileError) {
-            uploadFileAlert = (
-                <Alert bsStyle='danger'>
-                <strong>Error: </strong>Please check your file name again.
-                </Alert>
-            );
-        } else {
-            uploadFileAlert = <span></span>;
-        }
-        
-        return (
-            <Row>
-                <Col md={4}>
-                    <Button id="addFolderButton" onClick={() => this.setState({showAddFolderDialog: true})} bsStyle='primary'>New Folder</Button>
-                    <p></p>
-                    <ListGroup>
-                        {folderList}
-                    </ListGroup>
+                <Modal show={showUploadFileDialog} onHide={() => setShowUploadFileDialog(false)}>
+                    <Modal.Header>
+                        <Modal.Title>Upload File</Modal.Title>
+                    </Modal.Header>
 
-                    <Modal show={this.state.showAddFolderDialog} onHide={() => this.setState({showAddFolderDialog: false})}>
-                        <Modal.Header>
-                            <Modal.Title>Add folder</Modal.Title>
-                        </Modal.Header>
+                    <Modal.Body>
+                        {uploadFileAlert}
+                        <FormControl type="file" placeholder="Upload file" onChange={evt => setNewUploadFile(evt.target.files[0])} />
+                    </Modal.Body>
 
-                        <Modal.Body>
-                            {addFolderAlert}
-                            <FormControl type="text" placeholder="Folder Name" onChange={evt => this.newFolderName = evt.target.value} />
-                        </Modal.Body>
+                    <Modal.Footer>
+                        <Button onClick={() => setShowUploadFileDialog(false)}>Close</Button>
+                        <Button onClick={() => uploadFile()} bsStyle="primary">Add</Button>
+                    </Modal.Footer>
+                </Modal>
 
-                        <Modal.Footer>
-                            <Button onClick={() => this.setState({showAddFolderDialog: false})}>Close</Button>
-                            <Button onClick={this.addFolder} bsStyle="primary">Add</Button>
-                        </Modal.Footer>
-                    </Modal>
-                </Col>
-                <Col md={8}>
-                    <Button id="uploadFileButton" onClick={() => this.setState({showUploadFileDialog: true})} bsStyle='primary'>Upload File</Button>
-                    <p></p>
-                    <ListGroup>
-                        {filesList}
-                    </ListGroup>
+                
+                <Modal show={showFileShareDialog} onHide={() => setShowFileShareDialog(false)}>
+                    <Modal.Header>
+                        <Modal.Title>Share</Modal.Title>
+                    </Modal.Header>
 
-                    <Modal show={this.state.showUploadFileDialog} onHide={() => this.setState({showUploadFileDialog: false})}>
-                        <Modal.Header>
-                            <Modal.Title>Upload File</Modal.Title>
-                        </Modal.Header>
-
-                        <Modal.Body>
-                            {uploadFileAlert}
-                            <FormControl type="file" placeholder="Upload file" onChange={evt => this.newUploadFile = evt.target.files[0]} />
-                        </Modal.Body>
-
-                        <Modal.Footer>
-                            <Button onClick={() => this.setState({showUploadFileDialog: false})}>Close</Button>
-                            <Button onClick={this.uploadFile} bsStyle="primary">Add</Button>
-                        </Modal.Footer>
-                    </Modal>
-
-                    
-                    <Modal show={this.state.showFileShareDialog} onHide={() => this.setState({showFileShareDialog: false})}>
-                        <Modal.Header>
-                            <Modal.Title>Share</Modal.Title>
-                        </Modal.Header>
-
-                        <Modal.Body>
-                            <ListGroup>
-                                <ListGroupItem>
-                                    <Row>
-                                        <Col md={8}>  
-                                        <p>Public Share: {window.location + "s/" + this.state.selectedFile.public_share_url}
-                                        </p>
-                                        </Col>
-                                        <Col md={2} mdOffset={2}>
-                                        <QRCode value={window.location + "s/" + this.state.selectedFile.public_share_url}
+                    <Modal.Body>
+                        <ListGroup>
+                            <ListGroupItem>
+                                <Row>
+                                    <Col md={8}>  
+                                    <p>Public Share: {window.location + "s/" + selectedFile.public_share_url}
+                                    </p>
+                                    </Col>
+                                    <Col md={2} mdOffset={2}>
+                                    <QRCode value={window.location + "s/" + selectedFile.public_share_url}
+                                        size={64} 
+                                        bgColor={'#ffffff'}
+                                        fgColor={'#000000'}
+                                        level={'L'}/>
+                                    
+                                    </Col>
+                                </Row>
+                                <Row>
+                                    <Col md={8}>
+                                        <p>Private Share: {window.location + "s/" + selectedFile.private_share_url}， Password: {selectedFile.private_share_password}</p>
+                                    </Col>
+                                    <Col md={2} mdOffset={2}>
+                                        <QRCode value={window.location + "s/" + selectedFile.private_share_url}
                                             size={64} 
                                             bgColor={'#ffffff'}
                                             fgColor={'#000000'}
                                             level={'L'}/>
-                                     
-                                        </Col>
-                                    </Row>
-                                    <Row>
-                                        <Col md={8}>
-                                            <p>Private Share: {window.location + "s/" + this.state.selectedFile.private_share_url}， Password: {this.state.selectedFile.private_share_password}</p>
-                                        </Col>
-                                        <Col md={2} mdOffset={2}>
-                                            <QRCode value={window.location + "s/" + this.state.selectedFile.private_share_url}
-                                                size={64} 
-                                                bgColor={'#ffffff'}
-                                                fgColor={'#000000'}
-                                                level={'L'}/>
-                                        </Col>
-                                    </Row>
-                                </ListGroupItem>
-                                <ListGroupItem>
-                                    <FormGroup>
-                                        <Radio name="shareGroup" 
-                                        inline
-                                        defaultChecked={this.state.selectedFile.open_public_share}
-                                        inputRef={ref => { this.publicShareRadioRef = ref; }}>
-                                        Public
-                                        </Radio>{' '}
-                                        <Radio name="shareGroup" 
-                                        inline
-                                        defaultChecked={this.state.selectedFile.open_private_share}
-                                        inputRef={ref => { this.privateShareRadioRef = ref; }}>
-                                        Private
-                                        </Radio>{' '}
-                                        <Radio name="shareGroup"
-                                        inline
-                                        defaultChecked={!this.state.selectedFile.open_public_share && !this.state.selectedFile.open_private_share}
-                                        inputRef={ref => { this.noShareRadioRef = ref; }}>
-                                        None
-                                        </Radio>
-                                        </FormGroup>
-                                </ListGroupItem>
-                            </ListGroup>
-                        </Modal.Body>
+                                    </Col>
+                                </Row>
+                            </ListGroupItem>
+                            <ListGroupItem>
+                                <FormGroup>
+                                    <Radio name="shareGroup" 
+                                    inline
+                                    defaultChecked={selectedFile.open_public_share}
+                                    inputRef={publicShareRadioRef}>
+                                    Public
+                                    </Radio>{' '}
+                                    <Radio name="shareGroup" 
+                                    inline
+                                    defaultChecked={selectedFile.open_private_share}
+                                    inputRef={privateShareRadioRef}>
+                                    Private
+                                    </Radio>{' '}
+                                    <Radio name="shareGroup"
+                                    inline
+                                    defaultChecked={!selectedFile.open_public_share && !selectedFile.open_private_share}
+                                    inputRef={noShareRadioRef}>
+                                    None
+                                    </Radio>
+                                    </FormGroup>
+                            </ListGroupItem>
+                        </ListGroup>
+                    </Modal.Body>
 
-                        <Modal.Footer>
-                            <Button onClick={() => this.setState({showFileShareDialog: false})}>Close</Button>
-                            <Button onClick={this.saveFileShareType} bsStyle="primary">Save</Button>
-                        </Modal.Footer>
-                    </Modal>
-                </Col>
-            </Row>
-      );
-    }
+                    <Modal.Footer>
+                        <Button onClick={() => setShowFileShareDialog(false)}>Close</Button>
+                        <Button onClick={() =>saveFileShareType()} bsStyle="primary">Save</Button>
+                    </Modal.Footer>
+                </Modal>
+            </Col>
+    );
+}
+
+const MainPanel = (props) => {
+    const [selectedFolder, setSelectedFolder] = useState('');
+ 
+    return (
+        <Row>
+            <FolderPanel changeSelectedFolder={folder => setSelectedFolder(folder)}/>
+            <FilePanel selectedFolder={selectedFolder}/>
+        </Row>
+    );
 }
 
 export default MainPanel;
